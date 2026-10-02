@@ -183,6 +183,7 @@ export const PRIOR: PriorAcquisition[] = [
     lessons: [
       { id: 'l1', text: 'Align technician pay bands before Day 1, not after.', category: 'People', inPlaybook: true },
     ],
+    atDiligence: { top5Pct: 14, recurringPct: 34, techRetentionPct: 79, evMultiple: 5.8 },
     tags: ['retention', 'pay bands'],
   },
   {
@@ -202,6 +203,7 @@ export const PRIOR: PriorAcquisition[] = [
     lessons: [
       { id: 'l2', text: 'Identify and license a successor qualifier before close where the founder is license holder.', category: 'Legal / Regulatory', inPlaybook: true },
     ],
+    atDiligence: { top5Pct: 18, recurringPct: 19, techRetentionPct: 84, evMultiple: 5.6 },
     tags: ['licensing', 'owner dependency'],
   },
   {
@@ -221,6 +223,7 @@ export const PRIOR: PriorAcquisition[] = [
     lessons: [
       { id: 'l3', text: 'Treat warranty/callback costs as recurring unless 3 years of evidence say otherwise.', category: 'Financial', inPlaybook: true },
     ],
+    atDiligence: { top5Pct: 21, recurringPct: 44, techRetentionPct: 86, evMultiple: 6.4 },
     tags: ['QoE', 'warranty'],
   },
   {
@@ -240,6 +243,7 @@ export const PRIOR: PriorAcquisition[] = [
     lessons: [
       { id: 'l4', text: 'Defer field-service software migration until after the first peak season (≈ month 6).', category: 'Integration', inPlaybook: false },
     ],
+    atDiligence: { top5Pct: 24, recurringPct: 27, techRetentionPct: 82, evMultiple: 6.2 },
     tags: ['integration', 'systems', 'ERP'],
   },
   {
@@ -261,6 +265,7 @@ export const PRIOR: PriorAcquisition[] = [
       { id: 'l5', text: 'Where top-5 > 30%, use contingent consideration tied to top-customer retention.', category: 'Valuation', inPlaybook: false },
       { id: 'l6', text: 'Talk to top customers before signing, not after.', category: 'Commercial', inPlaybook: false },
     ],
+    atDiligence: { top5Pct: 34, recurringPct: 23, techRetentionPct: 74, evMultiple: 6.0 },
     tags: ['customer concentration', 'change of control', 'earn-out'],
   },
 ];

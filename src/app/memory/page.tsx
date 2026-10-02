@@ -7,6 +7,7 @@ import { TopBar } from '@/components/Chrome';
 import { PageHeader, Section, Claim } from '@/components/ui';
 import { PRIOR } from '@/data/portfolio';
 import { fmtM } from '@/lib/meta';
+import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '@/lib/store';
 
 const PATTERNS = [
@@ -20,6 +21,8 @@ const PATTERNS = [
 export default function MemoryPage() {
   const adopted = useStore((s) => s.adoptedLessons);
   const adopt = useStore((s) => s.adoptLesson);
+  const playbookProposals = useStore(useShallow((s) => s.proposals.filter((p) => p.kind === 'playbook')));
+  const acceptProposal = useStore((s) => s.acceptProposal);
   const lessons = PRIOR.flatMap((p) => p.lessons.map((l) => ({ ...l, deal: p.name, inPlaybook: l.inPlaybook || adopted.includes(l.id) })));
   return (
     <Box>
@@ -83,6 +86,32 @@ export default function MemoryPage() {
             </Section>
             <Section title="Lessons → playbook">
               <Stack gap={8}>
+                {playbookProposals.map((p) => (
+                  <Box key={p.id} p="sm" style={{ background: '#f7f3ff', borderRadius: 8, border: '1px solid #ece4fb' }}>
+                    <Group justify="space-between" wrap="nowrap" align="flex-start">
+                      <Box>
+                        <Text fz={10.5} fw={600} tt="uppercase" c="violet.8" style={{ letterSpacing: '0.06em' }}>
+                          Proposed by Atlas from a cross-deal pattern
+                        </Text>
+                        <Text size="sm" fw={600}>
+                          {p.title.replace('Propose playbook change: ', '')}
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          {p.summary}
+                        </Text>
+                      </Box>
+                      {p.status === 'Pending' ? (
+                        <Button size="compact-xs" color="violet" onClick={() => acceptProposal(p.id)} style={{ flexShrink: 0 }}>
+                          Adopt
+                        </Button>
+                      ) : (
+                        <Badge color={p.status === 'Accepted' ? 'teal' : 'gray'} style={{ flexShrink: 0 }}>
+                          {p.status === 'Accepted' ? 'In playbook' : 'Dismissed'}
+                        </Badge>
+                      )}
+                    </Group>
+                  </Box>
+                ))}
                 {lessons.map((l) => (
                   <Group key={l.id} justify="space-between" wrap="nowrap" align="flex-start">
                     <Box>

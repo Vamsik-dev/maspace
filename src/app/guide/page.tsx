@@ -10,13 +10,26 @@ import { useUi } from '@/lib/ui-store';
 const A = '/acquisitions/acq-abc';
 
 const TOUR: { title: string; href: string; look: string }[] = [
-  { title: 'Open ABC Mechanical', href: A, look: 'Can you tell in 30 seconds where the deal is, what needs attention and who owns what?' },
-  { title: 'Open the customer concentration finding', href: `${A}/findings/f-conc`, look: 'Fact vs. interpretation vs. recommendation. Click "Why?" and follow a source to the page.' },
-  { title: 'Review the purchase price decision', href: `${A}/decisions/dec-price`, look: 'Options, evidence, reviews. Switch to Dan Whitaker (CEO) to approve, and watch follow-up actions appear.' },
-  { title: 'Ask Atlas to prepare you for the management meeting', href: `${A}/atlas`, look: 'Does it read like a capable associate, or a chatbot?' },
-  { title: 'Open the IC memo draft', href: `${A}/deliverables/dl-ic`, look: 'Generated from deal data, editable, with sources. Is the structure what your IC expects?' },
-  { title: 'Upload the Fleet Schedule', href: `${A}/documents`, look: 'Atlas proposes a finding; a human accepts or dismisses it.' },
-  { title: 'Look at Memory & Playbook', href: '/memory', look: 'Would cross-deal lessons change how you run deal #6?' },
+  { title: 'Start a new acquisition with six fields', href: '/new', look: 'Use the sample target and attach its data room. Watch Atlas read 10 documents and propose findings, requests and a playbook score. You typed six fields.' },
+  { title: 'Review what Atlas found', href: '/new', look: 'In the new deal, open Atlas review. Accept a finding and see the risk, decision and actions Atlas drafted for it. Accept, edit or dismiss each one.' },
+  { title: 'Check target intelligence', href: `${A}/research`, look: 'Playbook fit, benchmarks against your five past deals, seller claims checked against the data, and external research kept separate.' },
+  { title: 'Open ABC Mechanical, a deal six weeks in', href: A, look: 'The Atlas briefing: what changed, what Atlas found, playbook and prior-deal signals, decisions needed, and meeting prep.' },
+  { title: 'Follow one finding to a decision', href: `${A}/findings/f-conc`, look: 'Fact vs. interpretation vs. recommendation, with "Why?" sources. Then the price decision: switch to Dan Whitaker (CEO) to approve it.' },
+  { title: 'Ask for an outcome, not a summary', href: `${A}/atlas`, look: '"Prepare me for the management meeting" or "Research this target". Does it read like a capable associate?' },
+  { title: 'See the learning loop', href: '/memory', look: 'Past outcomes become lessons; Atlas proposes playbook changes from patterns across deals; the next deal is scored against them.' },
+];
+
+const BOUNDARY: [string, boolean, string][] = [
+  ['Read documents, extract facts, calculate metrics', true, ''],
+  ['Identify anomalies and contradictions', true, ''],
+  ['Compare against the thesis, playbook and prior deals', true, ''],
+  ['Research the target', true, 'Review'],
+  ['Propose findings, risks, questions and requests', true, 'Accept / edit / dismiss'],
+  ['Draft IC memo and deal updates', true, 'Edit / approve'],
+  ['Recommend actions', true, 'Decide'],
+  ['Make the transaction decision', false, 'Own'],
+  ['Approve valuation and risk acceptance', false, 'Own'],
+  ['Record outcomes and learn from them', true, 'Validate'],
 ];
 
 const STORY: { when: string; what: string; href: string }[] = [
@@ -42,17 +55,22 @@ export default function GuidePage() {
       <Box px={{ base: 'md', md: 40 }} py={28} maw={1180} mx="auto">
         <PageHeader
           eyebrow="For reviewers"
-          title="Prototype guide"
-          description="A front-end prototype of an acquisition workspace for lean serial acquirers. We want to know whether the workflow, terminology, objects and AI interactions match how your team actually runs deals — before we build the backend."
+          title="The system that helps an acquisition team understand the deal, decide what matters, and get smarter with every acquisition"
+          description="People provide context, documents and decisions. Atlas does the reading, connecting, researching and drafting. People validate and decide. This is a front-end prototype with synthetic data; we want to know which parts would change how your team runs a deal."
           right={
-            <Button component={Link} href={A} rightSection={<IconArrowRight size={14} />} size="sm">
-              Start with ABC Mechanical
-            </Button>
+            <Group gap="xs">
+              <Button component={Link} href={A} variant="default" size="sm">
+                Open ABC Mechanical
+              </Button>
+              <Button component={Link} href="/new" rightSection={<IconArrowRight size={14} />} size="sm">
+                Start a new acquisition
+              </Button>
+            </Group>
           }
         />
         <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg">
           <Stack gap="lg">
-            <Section title="A 10-minute tour">
+            <Section title="A 15-minute tour">
               <Stack gap={10}>
                 {TOUR.map((t, i) => (
                   <Group key={t.title} align="flex-start" wrap="nowrap" gap="sm">
@@ -71,27 +89,52 @@ export default function GuidePage() {
                 ))}
               </Stack>
             </Section>
-            <Section title="What we most want your view on">
-              <Stack gap={6}>
+            <Section title="The one question we most want answered">
+              <Text fz={17} fw={600} lh={1.4} style={{ letterSpacing: '-0.01em' }}>
+                “If the system could do all of this automatically from the documents and information your team already produces, which parts would actually change how you run an acquisition?”
+              </Text>
+              <Stack gap={4} mt="md">
                 {[
-                  'Are the 8 phases and 9 workstreams how you think about a deal?',
                   'Are Finding → Risk → Decision → Action the right objects? What would you call them?',
-                  'Who on your team would use this daily, weekly, or only at IC?',
-                  'Is the collaboration model (owner / reviewer / approver, advisors scoped to workstreams) realistic?',
-                  'Does Atlas feel useful or gimmicky? Would you trust it more because it shows evidence?',
-                  'What is missing that would stop you using it on your next deal?',
+                  'Which AI proposals would you trust enough to accept without re-checking the source?',
+                  'Who on your team would review the Atlas queue, and how often?',
                   'What would this be worth to your team, and who would pay for it?',
                 ].map((q) => (
-                  <Text key={q} size="sm">
+                  <Text key={q} size="sm" c="dimmed">
                     • {q}
                   </Text>
                 ))}
-                <Group mt="sm">
-                  <Button variant="light" onClick={() => setFb(true)}>
-                    Leave feedback
-                  </Button>
-                </Group>
               </Stack>
+              <Group mt="md">
+                <Button variant="light" onClick={() => setFb(true)}>
+                  Leave feedback
+                </Button>
+              </Group>
+            </Section>
+            <Section title="Who does what">
+              <Table fz="sm" verticalSpacing={6}>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Activity</Table.Th>
+                    <Table.Th ta="center">Atlas</Table.Th>
+                    <Table.Th>Human</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {BOUNDARY.map(([a, ai, human]) => (
+                    <Table.Tr key={a}>
+                      <Table.Td>{a}</Table.Td>
+                      <Table.Td ta="center">{ai ? '✓' : ''}</Table.Td>
+                      <Table.Td c={human === 'Own' ? 'ink.8' : 'dimmed'} fw={human === 'Own' ? 600 : 400}>
+                        {human}
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+              <Text size="xs" c="dimmed" mt={6}>
+                Atlas proposes. People own judgment.
+              </Text>
             </Section>
           </Stack>
           <Stack gap="lg">

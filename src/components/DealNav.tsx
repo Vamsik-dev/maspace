@@ -1,7 +1,7 @@
 'use client';
 
 import { Badge, Box, Center, Group, RingProgress, Stack, Text, UnstyledButton } from '@mantine/core';
-import { IconCheck, IconLayoutDashboard, IconSparkles, IconColumns3, IconListCheck, IconAlertTriangle, IconShieldExclamation, IconGavel, IconFiles, IconFileText, IconUsers, IconActivity } from '@tabler/icons-react';
+import { IconCheck, IconLayoutDashboard, IconSparkles, IconColumns3, IconListCheck, IconAlertTriangle, IconShieldExclamation, IconGavel, IconFiles, IconFileText, IconUsers, IconActivity, IconInbox, IconRadar } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -55,6 +55,7 @@ export function DealNav({ acqId, withPhases = true, onNavigate }: { acqId: strin
   const openRisks = useStore((s) => s.risks.filter((r) => r.acqId === acqId && (r.status === 'Open' || r.status === 'Mitigating')).length);
   const overdue = useStore((s) => s.work.filter((w) => w.acqId === acqId && w.status !== 'Complete' && w.due && w.due < DEMO_TODAY).length);
   const proposed = useStore((s) => s.findings.filter((f) => f.acqId === acqId && f.status === 'Proposed').length);
+  const review = useStore((s) => s.findings.filter((f) => f.acqId === acqId && f.status === 'Proposed').length + s.proposals.filter((x) => x.acqId === acqId && x.status === 'Pending').length);
   if (!acq) return null;
   const base = `/acquisitions/${acqId}`;
   const is = (p: string) => path === base + p || path.startsWith(base + p + '/');
@@ -63,6 +64,8 @@ export function DealNav({ acqId, withPhases = true, onNavigate }: { acqId: strin
     <Box>
       <Stack gap={2}>
         <NavItem {...p} href={base} icon={<IconLayoutDashboard size={17} stroke={1.7} />} label="Overview" active={path === base} />
+        <NavItem {...p} href={`${base}/inbox`} icon={<IconInbox size={17} stroke={1.7} />} label="Atlas review" count={review} countColor="violet" active={is('/inbox') || is('/intake')} />
+        <NavItem {...p} href={`${base}/research`} icon={<IconRadar size={17} stroke={1.7} />} label="Target intelligence" active={is('/research')} />
         <NavItem {...p} href={`${base}/atlas`} icon={<IconSparkles size={17} stroke={1.7} />} label="Ask Atlas" active={is('/atlas')} />
       </Stack>
       {withPhases && (

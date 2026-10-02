@@ -36,10 +36,10 @@ body .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em
 .nav-link { position: relative; }
 .nav-link[data-active] { background: var(--app-brand-soft); }
 .nav-link[data-active]::before { content: ''; position: absolute; left: -10px; top: 6px; bottom: 6px; width: 3px; border-radius: 0 3px 3px 0; background: var(--app-brand); }
-.topnav-btn { color: #c3cee0; font-size: 13px; font-weight: 500; padding: 6px 10px; border-radius: 6px; transition: background 90ms, color 90ms; }
+.topnav-btn { white-space: nowrap; color: #c3cee0; font-size: 13px; font-weight: 500; padding: 6px 10px; border-radius: 6px; transition: background 90ms, color 90ms; }
 .topnav-btn:hover { background: rgba(255,255,255,.07); color: #fff; }
 .topnav-btn[data-active] { background: rgba(255,255,255,.1); color: #fff; }
-.search-trigger { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border-radius: 6px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); color: #9fb0c9; font-size: 12.5px; min-width: 260px; flex-shrink: 0; transition: background 90ms; }
+.search-trigger { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border-radius: 6px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); color: #9fb0c9; font-size: 12.5px; flex-shrink: 0; white-space: nowrap; overflow: hidden; transition: background 90ms; }
 .search-trigger:hover { background: rgba(255,255,255,.11); }
 .kbd { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; padding: 1px 5px; border-radius: 4px; border: 1px solid rgba(255,255,255,.18); color: #9fb0c9; }
 .stepper { display: flex; gap: 2px; }

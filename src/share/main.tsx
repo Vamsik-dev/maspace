@@ -35,12 +35,17 @@ import Deliverables from '@/app/acquisitions/[id]/deliverables/page';
 import Deliverable from '@/app/acquisitions/[id]/deliverables/[delId]/page';
 import Team from '@/app/acquisitions/[id]/team/page';
 import Activity from '@/app/acquisitions/[id]/activity/page';
+import Inbox from '@/app/acquisitions/[id]/inbox/page';
+import Research from '@/app/acquisitions/[id]/research/page';
+import Intake from '@/app/acquisitions/[id]/intake/page';
+import NewAcq from '@/app/new/page';
 
 const TOP: [string, ComponentType][] = [
   ['/', Portfolio],
   ['/memory', Memory],
   ['/guide', Guide],
   ['/feedback', Feedback],
+  ['/new', NewAcq],
 ];
 const DEAL: [string, ComponentType][] = [
   ['', Overview],
@@ -60,6 +65,9 @@ const DEAL: [string, ComponentType][] = [
   ['/deliverables/:delId', Deliverable],
   ['/team', Team],
   ['/activity', Activity],
+  ['/inbox', Inbox],
+  ['/research', Research],
+  ['/intake', Intake],
 ];
 
 function match(pattern: string, path: string): Record<string, string> | null {

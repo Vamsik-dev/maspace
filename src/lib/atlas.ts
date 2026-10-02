@@ -41,6 +41,7 @@ const who = (id: string) => (id === 'atlas' ? 'Atlas' : id === 'automation' ? 'A
 
 export const SUGGESTED: string[] = [
   'Prepare me for the management meeting',
+  'Research this target: what do outside sources say?',
   'What are the unresolved risks?',
   "What's changed this week?",
   'What changed since the original thesis?',
@@ -78,6 +79,24 @@ export function ask(question: string, acqId: string, s: S = useStore.getState())
       ],
       actions: [{ label: 'Open document', href: `${base}/documents/${docMatch.id}` }],
       followUps: ['What are the unresolved risks?'],
+    });
+  }
+
+  // ---------- external research ----------
+  if (has('research', 'outside', 'external', 'public record', 'market')) {
+    const items = s.research.filter((r) => r.acqId === acqId);
+    const claims = s.claims.filter((c) => c.acqId === acqId && c.verdict !== 'Verified');
+    return ans({
+      intro: items.length ? `Here is what outside sources add, kept separate from seller-provided documents. ${items.filter((r) => r.relevance === 'Material').length} items look material.` : 'No external research has been run for this target yet.',
+      blocks: [
+        ...items.map((r) => ({ type: 'claim' as const, claim: { kind: (r.relevance === 'Material' ? 'inference' : 'fact') as 'inference' | 'fact', text: `${r.topic}: ${r.headline}. ${r.detail} [External · ${r.sourceType}]` } })),
+        ...(claims.length
+          ? [{ type: 'list' as const, title: 'Seller claims to verify before the meeting', items: claims.map((c) => ({ text: `“${c.claim}” — ${c.verdict.toLowerCase()}: ${c.evidence}`, kind: 'fact' as const, citations: c.evidenceSources })) }]
+          : []),
+        { type: 'note', text: 'Prototype: external sources are synthetic. In the product Atlas researches permitted public sources and cites each one.' },
+      ],
+      actions: [{ label: 'Open target intelligence', href: `${base}/research` }],
+      followUps: ['Prepare me for the management meeting', 'Have we seen customer concentration like this before?'],
     });
   }
 

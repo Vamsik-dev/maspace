@@ -13,6 +13,7 @@ import { Comments } from '@/components/Comments';
 import { NewDecisionModal, NewRiskModal, NewWorkItemModal } from '@/components/Forms';
 import type { FindingStatus } from '@/lib/types';
 import { PRIOR } from '@/data/portfolio';
+import { ChainPanel } from '@/components/intel';
 
 export default function FindingPage() {
   const { id, fid } = useParams<{ id: string; fid: string }>();
@@ -75,6 +76,8 @@ export default function FindingPage() {
           </Group>
         </Alert>
       )}
+
+      <ChainPanel findingId={f.id} findingStatus={f.status} />
 
       <Box>
         <Group gap={8} mb={6}>

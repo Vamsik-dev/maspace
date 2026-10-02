@@ -1,0 +1,446 @@
+import type { DealDocument, Proposal, ResearchItem, SellerClaim, TargetMetrics } from '@/lib/types';
+
+// SYNTHETIC DEMO DATA. "Lone Star Comfort Systems" is fictional. This is the
+// sample seller data room used to demonstrate the zero-to-intelligence intake:
+// the user types six fields, attaches documents, and Atlas does the rest.
+
+export const LS_DEFAULTS = {
+  name: 'Lone Star Comfort Systems',
+  industry: 'HVAC services',
+  hq: 'San Antonio, TX',
+  revenue: 14.6,
+  ebitda: 2.4,
+  rationale: 'Enter San Antonio with a commercial HVAC service base; tuck in alongside Summit Electrical.',
+};
+
+type DocTpl = Omit<DealDocument, 'id' | 'acqId' | 'uploadedBy' | 'uploadedAt' | 'status'> & { key: string };
+
+export const LS_DOCS: DocTpl[] = [
+  {
+    key: 'cim',
+    name: 'Lone Star Comfort — CIM.pdf',
+    type: 'PDF',
+    category: 'CIM',
+    workstream: 'commercial',
+    version: 1,
+    pageCount: 38,
+    sizeKb: 5400,
+    tags: ['seller', 'overview'],
+    source: 'Seller',
+    summary: 'Seller CIM prepared by Bluestem Partners. Positions Lone Star as a diversified commercial HVAC service business.',
+    pages: [
+      { n: 6, heading: 'Investment highlights', body: ['Highly diversified customer base: no customer represents more than 10% of revenue.', 'Strong recurring revenue from 640 preventive-maintenance agreements.'] },
+      { n: 19, heading: 'Financial summary', body: ['FY2025 revenue of $14.6M. Adjusted EBITDA of $2.40M after $0.31M of owner-related and non-recurring adjustments.', 'Seller expectation: 7.0x adjusted EBITDA.'] },
+    ],
+  },
+  {
+    key: 'fin',
+    name: 'FY2023–FY2025 Financials & Add-backs.xlsx',
+    type: 'XLSX',
+    category: 'Financials',
+    workstream: 'financial',
+    version: 1,
+    pageCount: 3,
+    sizeKb: 380,
+    tags: ['income statement', 'add-backs'],
+    source: 'Seller',
+    summary: 'Reviewed financial statements and seller EBITDA add-back schedule.',
+    pages: [
+      {
+        n: 3,
+        heading: 'Sheet: Add-backs ($K)',
+        body: ['Seller adjustments to reported EBITDA.'],
+        table: {
+          columns: ['Adjustment', 'FY2023', 'FY2024', 'FY2025'],
+          rows: [
+            ['Reported EBITDA', '1,880', '1,990', '2,090'],
+            ['Owner compensation normalization', '+120', '+120', '+120'],
+            ['Non-recurring callbacks & warranty', '+88', '+91', '+96'],
+            ['Rent normalization (related-party lease)', '—', '—', '+94'],
+            ['Seller Adjusted EBITDA', '2,088', '2,201', '2,400'],
+          ],
+          highlightRows: [2, 3],
+        },
+      },
+    ],
+  },
+  {
+    key: 'cust',
+    name: 'Customer Revenue FY2025.xlsx',
+    type: 'XLSX',
+    category: 'Financials',
+    workstream: 'commercial',
+    version: 1,
+    pageCount: 2,
+    sizeKb: 720,
+    tags: ['customers', 'concentration'],
+    source: 'Seller',
+    summary: 'FY2025 revenue by customer and revenue type.',
+    pages: [
+      {
+        n: 1,
+        heading: 'Sheet: Top customers ($K)',
+        body: ['1,480 active customers. Total FY2025 revenue $14,600K.'],
+        table: {
+          columns: ['Customer', 'FY2025', '% total'],
+          rows: [
+            ['Bexar Valley Medical Group', '1,650', '11.3%'],
+            ['Alamo Commercial Properties', '880', '6.0%'],
+            ['Mission Trail ISD', '730', '5.0%'],
+            ['Riverwalk Hospitality LLC', '580', '4.0%'],
+            ['Cibolo Logistics Center', '500', '3.4%'],
+          ],
+          highlightRows: [0, 1, 2, 3, 4],
+        },
+      },
+      { n: 2, heading: 'Sheet: Revenue by type', body: ['Recurring maintenance agreements: 22.1%. Service & repair: 48.6%. Replacement & projects: 29.3%.'] },
+    ],
+  },
+  {
+    key: 'ar',
+    name: 'AR Aging — Sep 2026.xlsx',
+    type: 'XLSX',
+    category: 'Financials',
+    workstream: 'financial',
+    version: 1,
+    pageCount: 1,
+    sizeKb: 210,
+    tags: ['working capital', 'receivables'],
+    source: 'Seller',
+    summary: 'Accounts receivable aging by bucket, with prior-year comparison.',
+    pages: [
+      {
+        n: 1,
+        heading: 'Sheet: Aging summary ($K)',
+        body: ['Total AR $2,310K at Sep 30, 2026.'],
+        table: {
+          columns: ['Bucket', 'Sep 2024', 'Sep 2025', 'Sep 2026'],
+          rows: [
+            ['Current', '1,310', '1,402', '1,295'],
+            ['31–60', '240', '262', '318'],
+            ['61–90', '88', '104', '281'],
+            ['> 90', '121', '139', '416'],
+            ['> 90 as % of AR', '6.9%', '7.3%', '18.0%'],
+          ],
+          highlightRows: [3, 4],
+        },
+      },
+    ],
+  },
+  {
+    key: 'lease',
+    name: 'HQ Lease — 4410 Rittiman Rd.pdf',
+    type: 'PDF',
+    category: 'Real Estate',
+    workstream: 'legal',
+    version: 1,
+    pageCount: 22,
+    sizeKb: 1400,
+    tags: ['lease', 'related party'],
+    source: 'Seller',
+    summary: 'Headquarters lease between the company and RJM Holdings LLC.',
+    pages: [{ n: 1, heading: 'Parties and rent', body: ['Landlord: RJM Holdings LLC (managing member: Ray J. Morales). Tenant: Lone Star Comfort Systems, Inc.', 'Base rent: $26.50 per sq ft per year, 14,200 sq ft, term through 2034 with 3% annual escalators.'] }],
+  },
+  {
+    key: 'lic',
+    name: 'Licenses & Certifications.xlsx',
+    type: 'XLSX',
+    category: 'Regulatory',
+    workstream: 'environmental',
+    version: 1,
+    pageCount: 1,
+    sizeKb: 60,
+    tags: ['TDLR', 'licenses'],
+    source: 'Seller',
+    summary: 'State license register for both branches.',
+    pages: [
+      {
+        n: 1,
+        heading: 'Sheet: Licenses',
+        body: ['Both branches operate under a single TDLR ACR contractor license.'],
+        table: {
+          columns: ['Branch', 'License', 'Holder of record', 'Expires'],
+          rows: [
+            ['San Antonio', 'TDLR ACR Contractor Class A', 'Ray J. Morales (founder)', '2027-05'],
+            ['New Braunfels', 'TDLR ACR Contractor Class A', 'Ray J. Morales (founder)', '2027-05'],
+          ],
+          highlightRows: [0, 1],
+        },
+      },
+    ],
+  },
+  {
+    key: 'emp',
+    name: 'Employee Census.xlsx',
+    type: 'XLSX',
+    category: 'HR',
+    workstream: 'hr',
+    version: 1,
+    pageCount: 2,
+    sizeKb: 150,
+    tags: ['workforce', 'turnover'],
+    source: 'Seller',
+    summary: 'Census of 96 employees with role, tenure and pay band.',
+    pages: [{ n: 2, heading: 'Sheet: Technician turnover', body: ['FY2025: average 58 technicians, 18 separations, turnover 31.0% (FY2024: 24.2%).'] }],
+  },
+  {
+    key: 'bvmg',
+    name: 'Bexar Valley Medical Group — Service Agreement.pdf',
+    type: 'PDF',
+    category: 'Customer Contract',
+    workstream: 'legal',
+    version: 1,
+    pageCount: 16,
+    sizeKb: 880,
+    tags: ['contract', 'top customer'],
+    source: 'Seller',
+    summary: 'Three-year service agreement covering 14 clinics, renewed in 2025.',
+    pages: [{ n: 11, heading: 'Section 17 — Assignment', body: ['17.2 Any change of control of Contractor shall require the prior written consent of Client. Failing such consent, Client may terminate this Agreement on forty-five (45) days’ notice.'] }],
+  },
+  {
+    key: 'mp',
+    name: 'Management Presentation.pptx',
+    type: 'PPTX',
+    category: 'Management Presentation',
+    workstream: 'commercial',
+    version: 1,
+    pageCount: 28,
+    sizeKb: 11800,
+    tags: ['management'],
+    source: 'Seller',
+    summary: 'Founder-led presentation on strategy, team and growth plan.',
+    pages: [{ n: 14, heading: 'Slide 14 — Margin profile', body: ['Gross margin 41.2% in FY2025, driven by commercial service pricing discipline.'] }],
+  },
+  {
+    key: 'ins',
+    name: 'Insurance Loss Runs 2021–2026.pdf',
+    type: 'PDF',
+    category: 'Insurance',
+    workstream: 'insurance',
+    version: 1,
+    pageCount: 9,
+    sizeKb: 520,
+    tags: ['insurance', 'claims'],
+    source: 'Seller',
+    summary: 'Five-year loss runs: general liability, auto and workers’ compensation.',
+    pages: [{ n: 2, heading: 'Summary', body: ['Auto claims: 7 in five years, total incurred $212K. Workers’ compensation: 4 claims, total incurred $64K. No open general liability claims.'] }],
+  },
+];
+
+export const LS_METRICS: TargetMetrics = {
+  revenue: 14.6,
+  recurringPct: 22.1,
+  top5Pct: 29.7,
+  techRetentionPct: 69.0,
+  ownerDependency: 'High',
+  askMultiple: 7.0,
+  grossMarginPct: 41.2,
+  sources: {
+    revenue: [{ docId: 'cim', page: 19 }],
+    recurringPct: [{ docId: 'cust', page: 2 }],
+    top5Pct: [{ docId: 'cust', page: 1 }],
+    techRetentionPct: [{ docId: 'emp', page: 2 }],
+    ownerDependency: [{ docId: 'lic', page: 1 }],
+    askMultiple: [{ docId: 'cim', page: 19 }],
+  },
+};
+
+type FindingTpl = NonNullable<NonNullable<Proposal['payload']>['finding']>;
+export interface Discovery {
+  key: string;
+  afterDoc: string; // doc key that triggers it during the analysis run
+  finding: FindingTpl;
+  chain: Omit<Proposal, 'id' | 'acqId' | 'createdAt' | 'status' | 'parentFindingId'>[];
+}
+
+export const LS_DISCOVERIES: Discovery[] = [
+  {
+    key: 'conc',
+    afterDoc: 'cust',
+    finding: {
+      title: 'Top-5 customers are 29.7% of revenue; largest is 11.3%',
+      workstream: 'commercial',
+      severity: 'High',
+      ownerId: 'p-priya',
+      fact: { text: 'Top 5 customers represent 29.7% of FY2025 revenue ($4.34M of $14.6M). Bexar Valley Medical Group alone is 11.3%.', citations: [{ docId: 'cust', page: 1, locator: 'Sheet "Top customers"' }] },
+      calculation: '(1,650 + 880 + 730 + 580 + 500) ÷ 14,600 = 29.7%',
+      interpretation: 'Above the 25% playbook threshold, and the largest customer exceeds the 10% level at which Red River lost its anchor customer after close.',
+      recommendation: 'Validate top-5 retention before IOI pricing; consider a concentration-specific escrow.',
+      thesisLink: { assumptionId: 'a1', expected: '< 25%', actual: '29.7%' },
+      implications: [
+        { area: 'Valuation', text: 'Supports pricing below the seller’s 7.0x ask or contingent consideration.' },
+        { area: 'Commercial', text: 'Customer calls needed before LOI.' },
+      ],
+      possibleActions: ['Request 5-year customer retention data', 'Add earn-out protection'],
+    },
+    chain: [
+      { kind: 'risk', title: 'Revenue durability depends on Bexar Valley Medical', summary: 'Loss of the largest customer would remove 11.3% of revenue and ~16% of gross profit.', basis: 'Finding + Red River precedent (lost 14% customer in month 9).', confidence: 'High', payload: { risk: { title: 'Revenue durability depends on Bexar Valley Medical', description: 'Loss of the largest customer would remove 11.3% of revenue.', severity: 'High', probability: 'Possible', ownerId: 'p-priya', mitigation: 'Pre-LOI customer call; concentration escrow or earn-out.' } } },
+      { kind: 'decision', title: 'How should the IOI price customer concentration?', summary: 'Three options drafted from the playbook and prior deals.', basis: 'Playbook v4 requires a pricing position when top-5 > 25%.', confidence: 'Medium', payload: { decision: { question: 'How should the IOI price customer concentration at Lone Star?', context: 'Top-5 = 29.7%; largest customer 11.3% with change-of-control consent right.', options: [{ label: 'Price at 6.0x, no structure', description: 'Reflect risk in multiple.' }, { label: '6.5x with 10% concentration escrow', description: 'Escrow released at 12 months if top-5 retained.' }, { label: '6.25x + earn-out on top-5 retention', description: 'Mirrors ABC structure.' }], recommended: 1, approverId: 'p-priya', phase: 'valuation' } } },
+      { kind: 'action', title: 'Request 5-year customer retention data', summary: 'Owner: Marcus Hale · due Oct 9', basis: 'Needed to separate growth-driven from churn-driven concentration.', confidence: 'High', payload: { action: { title: 'Request 5-year customer retention data (top 25)', ownerId: 'p-marcus', workstream: 'commercial', due: '2026-10-09', kind: 'Request' } } },
+    ],
+  },
+  {
+    key: 'claim',
+    afterDoc: 'cust',
+    finding: {
+      title: 'CIM claim “no customer above 10%” is contradicted by the data',
+      workstream: 'commercial',
+      severity: 'Medium',
+      ownerId: 'p-marcus',
+      fact: { text: 'The CIM states no customer represents more than 10% of revenue. The customer file shows Bexar Valley Medical Group at 11.3%.', citations: [{ docId: 'cim', page: 6 }, { docId: 'cust', page: 1 }] },
+      interpretation: 'Likely a rounding or prior-year statement, but it lowers confidence in other CIM claims.',
+      recommendation: 'Ask the banker to confirm the basis; tag remaining CIM claims for verification.',
+      implications: [{ area: 'Commercial', text: 'Seller-provided figures need independent verification.' }],
+    },
+    chain: [],
+  },
+  {
+    key: 'ar',
+    afterDoc: 'ar',
+    finding: {
+      title: 'Receivables over 90 days jumped to 18% of AR',
+      workstream: 'financial',
+      severity: 'High',
+      ownerId: 'p-elena',
+      fact: { text: 'AR over 90 days is $416K, 18.0% of total AR at Sep 30, 2026, versus 7.3% a year earlier and 6.9% in 2024.', citations: [{ docId: 'ar', page: 1, locator: 'Sheet "Aging summary"' }] },
+      calculation: '416 ÷ 2,310 = 18.0%  (Sep 2025: 139 ÷ 1,907 = 7.3%)',
+      interpretation: 'A sudden deterioration not explained in the CIM. Possible billing disruption, a disputed customer, or collectability issues that would affect working capital and EBITDA.',
+      recommendation: 'Request customer-level aging and bad-debt reserve; flag for QoE scope.',
+      implications: [
+        { area: 'Financial', text: 'Net working capital peg and potential reserve adjustment.' },
+        { area: 'Valuation', text: 'Possible EBITDA reduction if write-offs are required.' },
+      ],
+      possibleActions: ['Request customer-level AR aging', 'Add to QoE scope'],
+    },
+    chain: [
+      { kind: 'action', title: 'Request customer-level AR aging and reserve policy', summary: 'Owner: Elena Torres · due Oct 7', basis: 'Needed to explain the jump in 90+ day receivables.', confidence: 'High', payload: { action: { title: 'Request customer-level AR aging and bad-debt reserve policy', ownerId: 'p-elena', workstream: 'financial', due: '2026-10-07', kind: 'Request' } } },
+      { kind: 'action', title: 'Add AR collectability to QoE scope', summary: 'Owner: Priya Raman', basis: 'QoE provider should test collectability and reserve adequacy.', confidence: 'Medium', payload: { action: { title: 'Add AR collectability testing to QoE scope', ownerId: 'p-priya', workstream: 'financial', due: '2026-10-14', kind: 'Task' } } },
+    ],
+  },
+  {
+    key: 'lease',
+    afterDoc: 'lease',
+    finding: {
+      title: 'HQ is leased from the founder; rent add-back may not hold',
+      workstream: 'legal',
+      severity: 'Medium',
+      ownerId: 'p-james',
+      fact: { text: 'The HQ landlord, RJM Holdings LLC, is managed by the founder. The seller adds back $94K of “rent normalization” in FY2025.', citations: [{ docId: 'lease', page: 1 }, { docId: 'fin', page: 3, locator: 'Row "Rent normalization"' }] },
+      interpretation: 'The add-back assumes rent falls to market after close, but the lease runs to 2034 at $26.50/sq ft with 3% escalators. Unless the lease is renegotiated at closing, the add-back is not achievable.',
+      recommendation: 'Make a new market-rate lease a closing condition, or remove the add-back.',
+      implications: [
+        { area: 'Valuation', text: '$94K EBITDA at risk (~$0.66M at the seller’s 7.0x).' },
+        { area: 'Legal', text: 'Related-party lease must be renegotiated in the SPA.' },
+      ],
+    },
+    chain: [],
+  },
+  {
+    key: 'owner',
+    afterDoc: 'lic',
+    finding: {
+      title: 'Founder is the only TDLR license holder for both branches',
+      workstream: 'operations',
+      severity: 'High',
+      ownerId: 'p-rachel',
+      fact: { text: 'Ray J. Morales is the ACR contractor license holder of record for both San Antonio and New Braunfels.', citations: [{ docId: 'lic', page: 1 }] },
+      interpretation: 'Contractor licenses do not transfer automatically. If the founder exits, both branches lose their license holder. Bluebonnet Plumbing paused commercial bidding for 4 months in the same situation.',
+      recommendation: 'Identify and license a successor qualifier before close; require a transition agreement.',
+      implications: [
+        { area: 'Operations', text: 'Licensing continuity for 100% of revenue.' },
+        { area: 'People', text: 'Founder transition terms.' },
+      ],
+    },
+    chain: [
+      { kind: 'risk', title: 'Licensing continuity depends on the founder', summary: 'Both branches operate under one founder-held license.', basis: 'Bluebonnet precedent: 4-month bidding pause.', confidence: 'High', payload: { risk: { title: 'Licensing continuity depends on the founder', description: 'Both branches operate under a single founder-held TDLR license.', severity: 'High', probability: 'Possible', ownerId: 'p-rachel', mitigation: 'Successor qualifier licensed before close; 18–24 month transition agreement.' } } },
+      { kind: 'action', title: 'Identify successor license qualifier candidates', summary: 'Owner: Rachel Kim · due Oct 16', basis: 'Playbook lesson from Bluebonnet (adopted 2023).', confidence: 'High', payload: { action: { title: 'Identify successor ACR license qualifier candidates', ownerId: 'p-rachel', workstream: 'operations', due: '2026-10-16', kind: 'Task' } } },
+    ],
+  },
+  {
+    key: 'turnover',
+    afterDoc: 'emp',
+    finding: {
+      title: 'Technician turnover is 31%, up from 24%',
+      workstream: 'hr',
+      severity: 'High',
+      ownerId: 'p-tom',
+      fact: { text: 'FY2025 technician turnover was 31.0% (18 separations on an average of 58), up from 24.2% in FY2024.', citations: [{ docId: 'emp', page: 2 }] },
+      calculation: '18 ÷ 58 = 31.0%  → retention 69.0%',
+      interpretation: 'Well below the 80% retention threshold. Pinecrest Air lost technicians in months 2–5 after close because of pay-band misalignment.',
+      recommendation: 'Benchmark pay against Meridian bands before LOI; size a retention pool.',
+      thesisLink: { assumptionId: 'a3', expected: '≥ 80% retention', actual: '69.0%' },
+      implications: [{ area: 'People', text: 'Retention pool and pay alignment before Day 1.' }],
+    },
+    chain: [{ kind: 'action', title: 'Benchmark technician pay against Meridian bands', summary: 'Owner: Tom Brennan · due Oct 12', basis: 'Pinecrest lesson (in playbook).', confidence: 'High', payload: { action: { title: 'Benchmark Lone Star technician pay against Meridian bands', ownerId: 'p-tom', workstream: 'hr', due: '2026-10-12', kind: 'Task' } } }],
+  },
+  {
+    key: 'warranty',
+    afterDoc: 'fin',
+    finding: {
+      title: 'Callback & warranty add-back recurs every year',
+      workstream: 'financial',
+      severity: 'Medium',
+      ownerId: 'p-elena',
+      fact: { text: 'The seller adds back “non-recurring” callbacks and warranty costs of $88K, $91K and $96K in FY2023–FY2025.', citations: [{ docId: 'fin', page: 3 }] },
+      interpretation: 'A cost that appears every year is recurring. Same pattern as Gulf Coast Fire Protection, where Year-1 EBITDA came in 11% below plan.',
+      recommendation: 'Exclude from adjusted EBITDA in the preliminary valuation.',
+      implications: [{ area: 'Valuation', text: 'Adjusted EBITDA $2.30M rather than $2.40M before QoE.' }],
+    },
+    chain: [],
+  },
+  {
+    key: 'coc',
+    afterDoc: 'bvmg',
+    finding: {
+      title: 'Largest customer contract requires consent on change of control',
+      workstream: 'legal',
+      severity: 'High',
+      ownerId: 'p-james',
+      fact: { text: 'Bexar Valley Medical Group (11.3% of revenue) may terminate on 45 days’ notice if it does not consent to a change of control.', citations: [{ docId: 'bvmg', page: 11, locator: '§17.2' }] },
+      interpretation: 'Compounds the concentration finding: the largest customer can exit at the moment of the transaction.',
+      recommendation: 'Plan consent outreach; consider consent as a closing condition.',
+      implications: [{ area: 'Legal', text: 'Consent mechanics in SPA.' }],
+    },
+    chain: [],
+  },
+  {
+    key: 'margin',
+    afterDoc: 'mp',
+    finding: {
+      title: 'Gross margin of 41% is above Meridian’s HVAC average',
+      workstream: 'commercial',
+      severity: 'Low',
+      positive: true,
+      ownerId: 'p-marcus',
+      fact: { text: 'FY2025 gross margin was 41.2%.', citations: [{ docId: 'mp', page: 14 }] },
+      interpretation: 'About 4 points above ABC Mechanical (37.5%). Commercial pricing discipline could be a practice worth spreading across the platform.',
+      implications: [{ area: 'Integration', text: 'Potential pricing best practice for other Meridian businesses.' }],
+    },
+    chain: [],
+  },
+];
+
+/** Information Atlas expected for this stage but did not find. */
+export const LS_GAPS: { title: string; why: string; workstream: 'financial' | 'tax' | 'legal' | 'operations' | 'environmental' | 'commercial' }[] = [
+  { title: 'Monthly P&L, last 24 months', why: 'Needed to test seasonality and the AR deterioration timing.', workstream: 'financial' },
+  { title: 'Top-20 customer contracts', why: 'Only 1 of the top 5 contracts was provided; change-of-control exposure unknown for the rest.', workstream: 'legal' },
+  { title: 'Sales & use tax filings 2023–2025', why: 'Commercial maintenance is taxable in Texas; ABC had a $110K under-collection.', workstream: 'tax' },
+  { title: 'Fleet schedule and maintenance logs', why: 'Fleet age drives deferred capex (ABC: ~$1.1M backlog).', workstream: 'operations' },
+  { title: 'EPA 608 refrigerant recovery records', why: 'Standard regulatory check for HVAC targets.', workstream: 'environmental' },
+];
+
+export const LS_RESEARCH: Omit<ResearchItem, 'id' | 'acqId'>[] = [
+  { topic: 'Market', headline: 'San Antonio–New Braunfels commercial construction remained strong in 2026', detail: 'Commercial square footage under construction grew year over year, supporting replacement and project revenue. Medical office and logistics are the fastest-growing segments, matching Lone Star’s top customers.', source: 'Regional commercial real estate market report (synthetic)', sourceType: 'Industry data', relevance: 'Context', asOf: '2026-09-15' },
+  { topic: 'Competition', headline: 'Two PE-backed HVAC platforms entered San Antonio in the last 18 months', detail: 'Consolidators are competing for technicians in the market, which is consistent with Lone Star’s rising turnover and may pressure wages.', source: 'Press releases and job postings (synthetic)', sourceType: 'News', relevance: 'Material', asOf: '2026-08-30' },
+  { topic: 'Regulatory', headline: 'Texas ACR contractor licenses are held by an individual, not the company', detail: 'A business must have a licensed individual responsible for its air conditioning and refrigeration work. A change of ownership does not transfer the individual’s license.', source: 'State licensing agency guidance (summarized)', sourceType: 'Government', relevance: 'Material', asOf: '2026-09-01' },
+  { topic: 'Company records', headline: 'One closed civil case; no liens or judgments found', detail: 'A 2023 payment dispute with a general contractor was settled. No tax liens, UCC filings beyond equipment financing, or open judgments.', source: 'County court and UCC records search (synthetic)', sourceType: 'Public record', relevance: 'Context', asOf: '2026-09-20' },
+  { topic: 'Reputation', headline: '4.6★ across 1,240 reviews; recent reviews mention billing delays', detail: 'Rating is stable, but 9 of the last 40 reviews mention invoicing errors or delayed bills since spring 2026, which may relate to the AR increase.', source: 'Public review sites (synthetic)', sourceType: 'Reviews', relevance: 'Material', asOf: '2026-09-28' },
+  { topic: 'People', headline: 'Founder also owns the HQ landlord entity', detail: 'State business filings list Ray J. Morales as managing member of RJM Holdings LLC, the HQ landlord.', source: 'Secretary of State business filings (synthetic)', sourceType: 'Public record', relevance: 'Material', asOf: '2026-09-20' },
+];
+
+export const LS_CLAIMS: Omit<SellerClaim, 'id' | 'acqId'>[] = [
+  { claim: 'No customer represents more than 10% of revenue.', claimSource: { docId: 'cim', page: 6 }, verdict: 'Contradicted', evidence: 'Bexar Valley Medical Group is 11.3% of FY2025 revenue.', evidenceSources: [{ docId: 'cust', page: 1 }] },
+  { claim: 'Strong recurring revenue from 640 maintenance agreements.', claimSource: { docId: 'cim', page: 6 }, verdict: 'Partly true', evidence: 'Agreements exist, but recurring revenue is 22.1% of total, below Meridian’s 25% threshold.', evidenceSources: [{ docId: 'cust', page: 2 }] },
+  { claim: 'Adjusted EBITDA of $2.40M.', claimSource: { docId: 'cim', page: 19 }, verdict: 'Partly true', evidence: 'Includes $96K of recurring callback costs and a $94K rent add-back that depends on renegotiating a founder-owned lease.', evidenceSources: [{ docId: 'fin', page: 3 }, { docId: 'lease', page: 1 }] },
+  { claim: 'Gross margin above 40%.', claimSource: { docId: 'mp', page: 14 }, verdict: 'Verified', evidence: 'Consistent with the FY2025 financial statements.', evidenceSources: [{ docId: 'fin', page: 3 }] },
+];

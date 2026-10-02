@@ -13,6 +13,10 @@ import type {
   FeedbackNote,
   Finding,
   Milestone,
+  Proposal,
+  ResearchItem,
+  SellerClaim,
+  Citation,
   PhaseKey,
   Risk,
   WorkItem,
@@ -32,6 +36,10 @@ import {
 } from '@/data/portfolio';
 import { DEMO_TODAY } from './meta';
 import { UPLOAD_CATALOG } from '@/data/uploads';
+import { ABC_CLAIMS, ABC_PROPOSALS, ABC_RESEARCH } from '@/data/abc-intel';
+import { LS_CLAIMS, LS_DISCOVERIES, LS_DOCS, LS_GAPS, LS_METRICS, LS_RESEARCH } from '@/data/lonestar';
+import { CRITERIA, similarDeals } from './playbook';
+import { PRIOR } from '@/data/portfolio';
 
 // The store stands in for the future API. Every action here maps to an
 // endpoint + server-side workflow rule; screens never mutate data directly.
@@ -58,12 +66,32 @@ interface State {
   rules: AutomationRule[];
   feedback: FeedbackNote[];
   adoptedLessons: string[];
+  proposals: Proposal[];
+  research: ResearchItem[];
+  claims: SellerClaim[];
+  /** Atlas-drafted follow-ups that are released when a finding is accepted. */
+  chains: Record<string, ChainTpl[]>;
+  runs: Record<string, AnalysisRun>;
   seq: number;
+}
+
+type ChainTpl = Omit<Proposal, 'id' | 'acqId' | 'createdAt' | 'status' | 'parentFindingId'>;
+
+export interface AnalysisRun {
+  status: 'running' | 'done';
+  total: number;
+  done: number;
+  current?: string;
+  log: { t: string; text: string; kind: 'doc' | 'finding' | 'check' | 'memory' | 'gap' | 'research' | 'done' }[];
 }
 
 interface Actions {
   setCurrentUser: (id: string) => void;
-  addAcquisition: (a: { name: string; industry: string; hq: string; revenue: number; ebitda: number; strategy: string; thesis: string }) => string;
+  addAcquisition: (a: { name: string; industry: string; hq: string; revenue: number; ebitda: number; strategy: string; thesis: string; rationale?: string }) => string;
+  runAnalysis: (acqId: string) => void;
+  acceptProposal: (id: string) => void;
+  dismissProposal: (id: string) => void;
+  acceptChain: (findingId: string) => void;
   updateWork: (id: string, patch: Partial<WorkItem>) => void;
   addWork: (w: Omit<WorkItem, 'id' | 'comments'>) => string;
   addComment: (type: 'work' | 'finding' | 'risk' | 'decision', id: string, body: string) => void;
@@ -103,6 +131,11 @@ const seed = (): State => ({
   rules: AUTOMATION_RULES,
   feedback: [],
   adoptedLessons: [],
+  proposals: ABC_PROPOSALS,
+  research: ABC_RESEARCH,
+  claims: ABC_CLAIMS,
+  chains: {},
+  runs: {},
   seq: 1,
 });
 
@@ -113,6 +146,21 @@ export const nowIso = () => {
 };
 
 const ruleOn = (s: State, id: string) => s.rules.find((r) => r.id === id)?.enabled;
+
+/** Default chain Atlas drafts for a finding that has no specific template. */
+function genericChain(f: Finding): ChainTpl[] {
+  if (!f || f.positive) return [];
+  const out: ChainTpl[] = [];
+  const high = f.severity === 'High' || f.severity === 'Critical';
+  if (high && !f.riskIds.length)
+    out.push({ kind: 'risk', title: `Risk: ${f.title}`, summary: f.interpretation ?? f.fact.text, basis: 'High-severity finding without a linked risk.', confidence: 'Medium', payload: { risk: { title: f.title, description: f.interpretation ?? f.fact.text, severity: f.severity, probability: 'Possible', ownerId: f.ownerId, mitigation: f.recommendation ?? 'To be defined.' } } });
+  if (high && !f.decisionIds.length)
+    out.push({ kind: 'decision', title: `How should we respond to: ${f.title.toLowerCase()}?`, summary: 'Options drafted from the finding and the playbook.', basis: 'Playbook v4: material findings need a recorded response.', confidence: 'Medium', payload: { decision: { question: `How should we respond to: ${f.title.toLowerCase()}?`, context: f.fact.text, options: [{ label: 'Accept and monitor', description: '' }, { label: 'Mitigate in price or structure', description: '' }, { label: 'Mitigate in the purchase agreement', description: '' }], recommended: 1, approverId: 'p-priya', phase: 'diligence' } } });
+  (f.possibleActions ?? []).filter((a) => !/valuation|earn-out|decision|escalate/i.test(a)).slice(0, 1).forEach((a) =>
+    out.push({ kind: 'action', title: a, summary: `Owner: ${f.ownerId === 'p-marcus' ? 'Marcus Hale' : 'finding owner'}`, basis: 'Suggested next step for this finding.', confidence: 'Medium', payload: { action: { title: a, ownerId: f.ownerId, workstream: f.workstream, due: '2026-10-09', kind: 'Task' } } }),
+  );
+  return out;
+}
 
 export const useStore = create<State & Actions>()(
   persist(
@@ -147,6 +195,7 @@ export const useStore = create<State & Actions>()(
             dealLeadId: me,
             target: { legalName: x.name, industry: x.industry, hq: x.hq, founded: 0, revenue: x.revenue, ebitda: x.ebitda, ebitdaBasis: 'Seller estimate (unverified)', employees: 0, branches: [], ownership: '—', description: '' },
             strategy: x.strategy,
+            rationale: x.rationale,
             ev: Math.round(x.ebitda * 6 * 10) / 10,
             evBasis: 'Placeholder: 6.0x seller EBITDA until valuation is built',
             thesis: {
@@ -156,6 +205,7 @@ export const useStore = create<State & Actions>()(
                 { id: 'a1', label: 'Top-5 customer concentration', expected: '< 25% of revenue', status: 'Untested' },
                 { id: 'a2', label: 'Recurring service revenue', expected: '≥ 25% of revenue', status: 'Untested' },
                 { id: 'a3', label: 'Owner transition', expected: 'Within 12 months', status: 'Untested' },
+                { id: 'a4', label: 'Technician retention', expected: '≥ 80%', status: 'Untested' },
               ],
             },
             phases: {
@@ -262,6 +312,180 @@ export const useStore = create<State & Actions>()(
             });
             set((s) => ({ findings: s.findings.map((x) => (x.id === id ? { ...x, workItemIds: [...x.workItemIds, wid] } : x)) }));
           }
+          // Atlas drafts the downstream chain (risk → decision → actions) for human review.
+          const tpl = get().chains[id] ?? genericChain(get().findings.find((x) => x.id === id)!);
+          if (tpl.length) {
+            const made: Proposal[] = tpl.map((t, i) => ({ ...t, id: `pr-${id}-${i}-${get().seq}`, acqId: f.acqId, createdAt: DEMO_TODAY, status: 'Pending', parentFindingId: id }));
+            set((s) => ({ proposals: [...made, ...s.proposals], seq: s.seq + 1 }));
+            log({ acqId: f.acqId, actor: 'atlas', kind: 'finding', text: `drafted ${made.length} linked item${made.length > 1 ? 's' : ''} (${made.map((m) => m.kind).join(', ')}) for "${f.title}"`, ref: { type: 'finding', id } });
+          }
+        },
+
+        acceptProposal: (pid) => {
+          const p = get().proposals.find((x) => x.id === pid);
+          if (!p || p.status !== 'Pending') return;
+          const me = get().currentUserId;
+          const pl = p.payload ?? {};
+          const parent = p.parentFindingId ? get().findings.find((f) => f.id === p.parentFindingId) : undefined;
+          if (pl.risk) {
+            if (parent) get().addRiskFromFinding(parent.id, pl.risk);
+            else {
+              const rid = nextId('r');
+              set((s) => ({ risks: [{ ...pl.risk!, id: rid, acqId: p.acqId, workstream: 'financial', status: 'Open', findingIds: [], decisionIds: [], comments: [] }, ...s.risks] }));
+            }
+          }
+          if (pl.decision) {
+            const d = pl.decision;
+            const riskIds = parent ? get().risks.filter((r) => r.findingIds.includes(parent.id)).map((r) => r.id) : [];
+            get().addDecision({
+              acqId: p.acqId,
+              question: d.question,
+              context: d.context,
+              phase: d.phase,
+              options: d.options.map((o, i) => ({ id: `o${i + 1}`, label: o.label, description: o.description, pros: [], cons: [] })),
+              recommendation: d.recommended !== undefined ? { optionId: `o${d.recommended + 1}`, by: 'atlas', rationale: p.basis } : undefined,
+              proposedBy: 'atlas',
+              approverId: d.approverId,
+              reviewerIds: [],
+              due: '2026-10-14',
+              findingIds: parent ? [parent.id] : [],
+              riskIds,
+              documentIds: parent ? parent.fact.citations.map((c) => c.docId) : [],
+              downstream: [],
+            });
+          }
+          if (pl.action) {
+            const acq = get().acquisitions.find((a) => a.id === p.acqId);
+            get().addWork({ acqId: p.acqId, title: pl.action.title, kind: pl.action.kind, workstream: pl.action.workstream, phase: acq?.currentPhase ?? 'diligence', status: 'Not Started', priority: 'High', ownerId: pl.action.ownerId, due: pl.action.due, findingIds: parent ? [parent.id] : undefined, createdBy: 'atlas' });
+          }
+          if (pl.finding) get().addFinding({ ...pl.finding, acqId: p.acqId, status: 'Open', identifiedBy: 'atlas' });
+          if (pl.deliverableId) {
+            get().saveDeliverable(pl.deliverableId, undefined);
+            set((s) => ({ deliverables: s.deliverables.map((d) => (d.id === pl.deliverableId ? { ...d, generatedAt: DEMO_TODAY } : d)) }));
+          }
+          if (p.kind === 'playbook') set((s) => ({ adoptedLessons: [...s.adoptedLessons, p.id] }));
+          set((s) => ({ proposals: s.proposals.map((x) => (x.id === pid ? { ...x, status: 'Accepted' } : x)) }));
+          log({ acqId: p.acqId, actor: me, kind: p.kind === 'risk' ? 'risk' : p.kind === 'decision' ? 'decision' : 'work', text: `accepted Atlas’s proposed ${p.kind}: "${p.title}"` });
+        },
+
+        dismissProposal: (pid) => {
+          const p = get().proposals.find((x) => x.id === pid);
+          set((s) => ({ proposals: s.proposals.map((x) => (x.id === pid ? { ...x, status: 'Dismissed' } : x)) }));
+          if (p) log({ acqId: p.acqId, actor: get().currentUserId, kind: 'work', text: `dismissed Atlas’s proposed ${p.kind}: "${p.title}"` });
+        },
+
+        acceptChain: (findingId) => {
+          const f = get().findings.find((x) => x.id === findingId);
+          if (f?.status === 'Proposed') get().acceptFinding(findingId);
+          // Risks first so decisions link to them.
+          const order = { risk: 0, decision: 1, action: 2, request: 2, deliverable: 3, research: 3, playbook: 3 } as const;
+          get()
+            .proposals.filter((p) => p.parentFindingId === findingId && p.status === 'Pending')
+            .sort((a, b) => order[a.kind] - order[b.kind])
+            .forEach((p) => get().acceptProposal(p.id));
+        },
+
+        runAnalysis: (acqId) => {
+          const me = get().currentUserId;
+          const docId = (key: string) => `${acqId}-${key}`;
+          const remap = (cs: Citation[]) => cs.map((c) => ({ ...c, docId: docId(c.docId) }));
+          const stamp = () => new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          const push = (text: string, kind: AnalysisRun['log'][number]['kind']) =>
+            set((s) => ({ runs: { ...s.runs, [acqId]: { ...s.runs[acqId], log: [...s.runs[acqId].log, { t: stamp(), text, kind }] } } }));
+          set((s) => ({ runs: { ...s.runs, [acqId]: { status: 'running', total: LS_DOCS.length, done: 0, log: [] } } }));
+          // Documents arrive as one data-room batch.
+          set((s) => ({
+            documents: [
+              ...LS_DOCS.map(({ key, ...d }) => ({ ...d, id: docId(key), acqId, uploadedBy: me, uploadedAt: DEMO_TODAY, status: 'Queued' as const })),
+              ...s.documents,
+            ],
+          }));
+          log({ acqId, actor: me, kind: 'document', text: `uploaded a data room batch of ${LS_DOCS.length} documents` });
+          push(`Received ${LS_DOCS.length} documents from the seller data room. Security scan passed.`, 'doc');
+          const STEP = 850;
+          LS_DOCS.forEach((d, i) => {
+            setTimeout(() => {
+              set((s) => ({
+                documents: s.documents.map((x) => (x.id === docId(d.key) ? { ...x, status: 'Processing' } : x)),
+                runs: { ...s.runs, [acqId]: { ...s.runs[acqId], current: d.name } },
+              }));
+              push(`Reading ${d.name} — ${d.pageCount} ${d.type === 'XLSX' ? 'sheets' : d.type === 'PPTX' ? 'slides' : 'pages'}. Classified as ${d.category}.`, 'doc');
+            }, i * STEP + 200);
+            setTimeout(() => {
+              set((s) => ({
+                documents: s.documents.map((x) => (x.id === docId(d.key) ? { ...x, status: 'Processed' } : x)),
+                runs: { ...s.runs, [acqId]: { ...s.runs[acqId], done: i + 1 } },
+              }));
+              LS_DISCOVERIES.filter((x) => x.afterDoc === d.key).forEach((disc) => {
+                const fid = get().addFinding({ ...disc.finding, fact: { ...disc.finding.fact, citations: remap(disc.finding.fact.citations) }, acqId, status: 'Proposed', identifiedBy: 'atlas' });
+                if (disc.chain.length) set((s) => ({ chains: { ...s.chains, [fid]: disc.chain } }));
+                push(`${disc.finding.positive ? 'Noted' : 'Proposed finding'}: ${disc.finding.title}`, 'finding');
+              });
+            }, i * STEP + 700);
+          });
+          const end = LS_DOCS.length * STEP + 900;
+          setTimeout(() => {
+            const metrics = { ...LS_METRICS, sources: Object.fromEntries(Object.entries(LS_METRICS.sources ?? {}).map(([k, v]) => [k, remap(v as Citation[])])) };
+            set((s) => ({
+              acquisitions: s.acquisitions.map((a) =>
+                a.id === acqId
+                  ? {
+                      ...a,
+                      metrics,
+                      target: { ...a.target, ebitdaBasis: 'Seller adjusted FY2025 (unverified)', employees: 96, branches: ['San Antonio (HQ)', 'New Braunfels'], ownership: 'Founder-owned (Ray J. Morales)', founded: 2006, description: 'Commercial HVAC service provider in San Antonio and New Braunfels with a preventive-maintenance program and a medical / hospitality customer mix.' },
+                      ev: 16.1,
+                      evBasis: 'Seller ask: 7.0x $2.30M adj. EBITDA (after excluding recurring callbacks)',
+                      thesis: {
+                        ...a.thesis,
+                        assumptions: a.thesis.assumptions.map((x) =>
+                          x.id === 'a1' ? { ...x, current: '29.7%', status: 'Contradicted' } : x.id === 'a2' ? { ...x, current: '22.1%', status: 'At risk' } : x.id === 'a3' ? { ...x, current: 'Founder holds both licenses', status: 'At risk' } : x.id === 'a4' ? { ...x, current: '69.0%', status: 'Contradicted' } : x,
+                        ),
+                      },
+                      phases: { ...a.phases, strategy: { ...a.phases.strategy, progress: 60, summary: 'Data room analyzed by Atlas. Screening decision pending.' } },
+                    }
+                  : a,
+              ),
+            }));
+            const fails = CRITERIA.filter((c) => c.test(metrics) === 'Fail').length;
+            const watch = CRITERIA.filter((c) => c.test(metrics) === 'Watch').length;
+            push(`Scored against Playbook v4: ${CRITERIA.length - fails - watch} pass, ${watch} watch, ${fails} fail.`, 'check');
+            const acq = get().acquisitions.find((a) => a.id === acqId)!;
+            const sim = similarDeals(acq);
+            push(`Compared with ${PRIOR.length} prior acquisitions: ${sim.map((x) => `${x.deal.name} (${x.reasons.join(', ')})`).join('; ')}.`, 'memory');
+          }, end);
+          setTimeout(() => {
+            set((s) => ({
+              proposals: [
+                ...LS_GAPS.map((g, i) => ({
+                  id: `pr-${acqId}-gap${i}`,
+                  acqId,
+                  kind: 'request' as const,
+                  title: `Request: ${g.title}`,
+                  summary: g.why,
+                  basis: 'Expected for this stage by Playbook v4; not found in the data room.',
+                  confidence: 'High' as const,
+                  createdAt: DEMO_TODAY,
+                  status: 'Pending' as const,
+                  payload: { action: { title: `Request from seller: ${g.title}`, ownerId: me, workstream: g.workstream, due: '2026-10-09', kind: 'Request' as const } },
+                })),
+                ...s.proposals,
+              ],
+            }));
+            push(`Found ${LS_GAPS.length} information gaps and drafted seller requests.`, 'gap');
+          }, end + 700);
+          setTimeout(() => {
+            set((s) => ({
+              research: [...LS_RESEARCH.map((r, i) => ({ ...r, id: `${acqId}-rs${i}`, acqId })), ...s.research],
+              claims: [...LS_CLAIMS.map((c, i) => ({ ...c, id: `${acqId}-cl${i}`, acqId, claimSource: { ...c.claimSource, docId: docId(c.claimSource.docId) }, evidenceSources: remap(c.evidenceSources) })), ...s.claims],
+            }));
+            push(`Researched ${LS_RESEARCH.length} external sources and checked ${LS_CLAIMS.length} seller claims (${LS_CLAIMS.filter((c) => c.verdict === 'Contradicted').length} contradicted).`, 'research');
+          }, end + 1400);
+          setTimeout(() => {
+            const n = get().findings.filter((f) => f.acqId === acqId && f.status === 'Proposed').length;
+            set((s) => ({ runs: { ...s.runs, [acqId]: { ...s.runs[acqId], status: 'done', current: undefined } } }));
+            push(`Done. ${n} findings and ${LS_GAPS.length} requests are waiting for your review. Nothing is final until a person accepts it.`, 'done');
+            log({ acqId, actor: 'atlas', kind: 'finding', text: `analyzed ${LS_DOCS.length} documents: ${n} proposed findings, ${LS_GAPS.length} information gaps, ${LS_RESEARCH.length} research items` });
+          }, end + 2000);
         },
 
         dismissFinding: (id) => {
@@ -354,7 +578,7 @@ export const useStore = create<State & Actions>()(
           if (id === 'dec-price' && optionId === 'o3') {
             set((s) => ({
               acquisitions: s.acquisitions.map((a) =>
-                a.id === d.acqId ? { ...a, ev: 20.0, evBasis: '$20.0M at close (6.25x QoE EBITDA) + up to $1.5M earn-out on top-5 retention' } : a,
+                a.id === d.acqId ? { ...a, ev: 20.0, evBasis: '$20.0M at close (6.25x QoE EBITDA) + up to $1.5M earn-out on top-5 retention', metrics: a.metrics ? { ...a.metrics, askMultiple: 6.25 } : a.metrics } : a,
               ),
               findings: s.findings.map((f) => (f.id === 'f-qoe' ? { ...f, status: 'Resolved' } : f.id === 'f-conc' ? { ...f, status: 'Confirmed' } : f)),
             }));
@@ -478,8 +702,14 @@ export const useStore = create<State & Actions>()(
       };
     },
     {
-      name: 'maspace-prototype-v1',
+      name: 'maspace-prototype-v2',
       storage: createJSONStorage(() => localStorage),
+      // Analysis runs are timer-driven; never restore one mid-flight.
+      partialize: (s) => {
+        const { runs, ...rest } = s;
+        void runs;
+        return rest as typeof s;
+      },
       skipHydration: true,
     },
   ),

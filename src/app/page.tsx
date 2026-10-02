@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Group, SimpleGrid, Stack, Text, Badge, Progress, Table, Anchor, Button } from '@mantine/core';
-import { IconArrowRight } from '@tabler/icons-react';
+import { IconArrowRight, IconPlus } from '@tabler/icons-react';
 import Link from 'next/link';
 import { TopBar } from '@/components/Chrome';
 import { PageHeader, Section, PersonAvatar, SyntheticBadge } from '@/components/ui';
@@ -10,7 +10,6 @@ import { PHASES, DEMO_TODAY, fmtM, phaseLabel } from '@/lib/meta';
 import { PRIOR } from '@/data/portfolio';
 import { ACQUIRER } from '@/data/people';
 import { fmtDate } from '@/lib/atlas';
-import { NewAcquisitionButton } from '@/components/NewAcquisition';
 
 function PhaseStrip({ phases }: { phases: Record<string, { status: string; progress: number }> }) {
   return (
@@ -46,7 +45,7 @@ export default function PortfolioPage() {
           eyebrow={ACQUIRER.name}
           title="Acquisition portfolio"
           description={`${active.length} active acquisitions · ${PRIOR.length} completed. ${ACQUIRER.strategy}`}
-          right={<NewAcquisitionButton />}
+          right={<Button component={Link} href="/new" leftSection={<IconPlus size={14} />}>New acquisition</Button>}
         />
 
         <Box className="panel" mb={28} style={{ overflow: 'hidden' }}>

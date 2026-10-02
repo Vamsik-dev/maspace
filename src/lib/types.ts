@@ -113,6 +113,9 @@ export interface Acquisition {
   valuation?: { multiple: number; lines: ValuationLine[]; note: string };
   /** Initial diligence request list status (items not tracked individually as work items). */
   requestList?: Partial<Record<WorkstreamKey, { done: number; total: number }>>;
+  metrics?: TargetMetrics;
+  /** One line on why the team is interested, entered at creation. */
+  rationale?: string;
   team: TeamMember[];
 }
 
@@ -298,6 +301,8 @@ export interface PriorAcquisition {
   issues: string[];
   lessons: { id: string; text: string; category: string; inPlaybook: boolean }[];
   tags: string[];
+  /** Characteristics measured in diligence, for benchmarking new targets. */
+  atDiligence: { top5Pct: number; recurringPct: number; techRetentionPct: number; evMultiple: number };
 }
 
 export interface FeedbackNote {
@@ -307,4 +312,65 @@ export interface FeedbackNote {
   path: string;
   rating?: 'Matches how we work' | 'Partly' | 'Not how we work';
   note: string;
+}
+
+// ---------- Intelligence layer ----------
+
+/** Measured target characteristics that the playbook can score. */
+export interface TargetMetrics {
+  revenue: number; // $M
+  recurringPct: number;
+  top5Pct: number;
+  techRetentionPct: number;
+  ownerDependency: 'Low' | 'Moderate' | 'High';
+  askMultiple: number; // EV / adj. EBITDA implied by the ask or LOI
+  grossMarginPct?: number;
+  sources?: Partial<Record<keyof Omit<TargetMetrics, 'sources'>, Citation[]>>;
+}
+
+export type ProposalKind = 'risk' | 'decision' | 'action' | 'request' | 'deliverable' | 'research' | 'playbook';
+
+/** Something Atlas drafted that a person must accept, edit or dismiss. */
+export interface Proposal {
+  id: string;
+  acqId: string;
+  kind: ProposalKind;
+  title: string;
+  summary: string;
+  basis: string; // why Atlas proposes it
+  confidence: 'High' | 'Medium' | 'Low';
+  createdAt: string;
+  status: 'Pending' | 'Accepted' | 'Dismissed';
+  parentFindingId?: string;
+  citations?: Citation[];
+  // What gets created on accept.
+  payload?: {
+    risk?: { title: string; description: string; severity: Severity; probability: 'Likely' | 'Possible' | 'Unlikely'; ownerId: string; mitigation: string };
+    decision?: { question: string; context: string; options: { label: string; description: string }[]; recommended?: number; approverId: string; phase: PhaseKey };
+    action?: { title: string; ownerId: string; workstream: WorkstreamKey; due: string; kind: WorkItem['kind'] };
+    deliverableId?: string;
+    finding?: Omit<Finding, 'id' | 'acqId' | 'createdAt' | 'comments' | 'riskIds' | 'decisionIds' | 'workItemIds' | 'status' | 'identifiedBy'>;
+  };
+}
+
+export interface ResearchItem {
+  id: string;
+  acqId: string;
+  topic: 'Market' | 'Competition' | 'Regulatory' | 'Company records' | 'Reputation' | 'People';
+  headline: string;
+  detail: string;
+  source: string; // descriptive source, synthetic in prototype
+  sourceType: 'Public record' | 'Government' | 'Industry data' | 'News' | 'Reviews' | 'Web';
+  relevance: 'Material' | 'Context';
+  asOf: string;
+}
+
+export interface SellerClaim {
+  id: string;
+  acqId: string;
+  claim: string;
+  claimSource: Citation;
+  verdict: 'Verified' | 'Contradicted' | 'Partly true' | 'Unverified';
+  evidence: string;
+  evidenceSources: Citation[];
 }

@@ -12,6 +12,9 @@ import { fmtDate, refHref } from '@/lib/atlas';
 import { workstreamProgress } from '@/lib/derive';
 import { Section, PersonAvatar, Meter, personName, StatusBadge } from '@/components/ui';
 import { differenceInCalendarDays } from 'date-fns';
+import { BriefRow, ThesisFit } from '@/components/intel';
+import { headlineBenchmark, similarDeals, thesisFit } from '@/lib/playbook';
+import { IconFileSearch, IconScale, IconHistory, IconPresentation, IconChartDots } from '@tabler/icons-react';
 
 function Kpi({ label, value, sub, tip, icon, tone }: { label: string; value: ReactNode; sub?: ReactNode; tip?: string; icon: ReactNode; tone: string }) {
   const inner = (
@@ -78,6 +81,16 @@ export default function OverviewPage() {
   ];
 
   const ws = workstreamProgress(acq, s.work);
+  const PRIORS = 5;
+  const fit = thesisFit(acq);
+  const sim = similarDeals(acq);
+  const bench = headlineBenchmark(acq);
+  const pendingProposals = s.proposals.filter((p) => p.acqId === id && p.status === 'Pending').length;
+  const recentDocs = s.documents.filter((d) => d.acqId === id && d.uploadedAt >= '2026-09-25').length;
+  const recentActs = activity.filter((a) => a.at >= '2026-09-25').length;
+  const latest = activity[0];
+  const myDecisions = pendingDecisions.filter((d) => d.approverId === me || d.reviewers.some((r) => r.personId === me && r.verdict === 'Pending')).length;
+  const nextMeeting = milestones.find((m) => m.date >= DEMO_TODAY && /meeting|committee|IOI|decision/i.test(m.title));
   const closeIn = acq.targetClose ? differenceInCalendarDays(new Date(acq.targetClose), new Date(DEMO_TODAY)) : null;
   const isAbc = id === 'acq-abc';
 
@@ -109,8 +122,71 @@ export default function OverviewPage() {
         </Text>
       </Group>
 
+      <Box className="panel" style={{ overflow: 'hidden' }}>
+        <Group justify="space-between" px="md" h={46} style={{ borderBottom: '1px solid var(--app-border-soft)', background: 'linear-gradient(90deg, #f7f3ff, #ffffff 60%)' }}>
+          <Group gap={8}>
+            <IconSparkles size={16} color="#6d3fd4" />
+            <Text fw={600} fz={13.5}>
+              Atlas briefing for {personName(me).split(' ')[0]}
+            </Text>
+          </Group>
+          <Text size="xs" c="dimmed">
+            Updated {fmtDate(DEMO_TODAY)} · from documents, playbook and {PRIORS} past deals
+          </Text>
+        </Group>
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing={0}>
+          <BriefRow icon={<IconFileSearch size={16} color="#4b5a70" />} tone="#f1f4f9" title="What changed" href={`${base}/activity`} cta="Activity">
+            <b>{recentDocs} document{recentDocs === 1 ? '' : 's'}</b> analyzed and <b>{recentActs} changes</b> in the last 7 days.{latest ? ` Latest: ${personName(latest.actor)} ${latest.text.length > 90 ? latest.text.slice(0, 88) + '…' : latest.text}.` : ''}
+          </BriefRow>
+          <BriefRow icon={<IconSparkles size={16} color="#6d3fd4" />} tone="#f5effd" title="Atlas found" href={`${base}/inbox`} cta="Review">
+            {proposed.length + pendingProposals > 0 ? (
+              <>
+                {proposed.length > 0 && (
+                  <>
+                    <b>{proposed.length} proposed finding{proposed.length === 1 ? '' : 's'}</b>
+                    {pendingProposals ? ' and ' : ' '}
+                  </>
+                )}
+                {pendingProposals > 0 && <b>{pendingProposals} drafted item{pendingProposals === 1 ? '' : 's'}</b>} waiting for your review.
+                {proposed[0] ? ` Top: ${proposed[0].title}.` : ''}
+              </>
+            ) : (
+              <>
+                <b>{critical.length} material issues</b> remain open: {critical.slice(0, 2).map((f) => f.title.toLowerCase()).join('; ')}.
+              </>
+            )}
+          </BriefRow>
+          <BriefRow icon={<IconHistory size={16} color="#4b5a70" />} tone="#f1f4f9" title="Based on your playbook" href={`${base}/research`} cta="Thesis fit">
+            {fit ? (
+              <>
+                <b>{fit.fail} of {fit.rows.length} criteria fail</b> {fit.watch ? `and ${fit.watch} need watching ` : ''}against Playbook v4.
+                {sim.length ? ` Resembles ${sim.slice(0, 2).map((x) => `${x.deal.name} (${x.reasons[0]})`).join(' and ')}.` : ''}
+              </>
+            ) : (
+              'Atlas will score the target once financials and the customer file arrive.'
+            )}
+          </BriefRow>
+          <BriefRow icon={<IconGavel size={16} color="#2f53bb" />} tone="#eef3ff" title="Decisions needed" href={`${base}/decisions`} cta="Decide">
+            <b>{pendingDecisions.length} decision{pendingDecisions.length === 1 ? '' : 's'}</b> {pendingDecisions.length === 1 ? 'is' : 'are'} waiting for human review
+            {myDecisions ? `, ${myDecisions} of them yours` : ''}.{pendingDecisions[0] ? ` Most urgent: ${pendingDecisions.slice().sort((a, b) => (a.due ?? '9').localeCompare(b.due ?? '9'))[0].question}` : ''}
+          </BriefRow>
+          <BriefRow icon={<IconPresentation size={16} color="#b25e09" />} tone="#fff3e6" title="Prepare me" onClick={() => openAtlas(nextMeeting ? 'Prepare me for the management meeting' : 'What needs my attention?')} cta={nextMeeting ? 'Generate briefing' : 'Ask Atlas'}>
+            {nextMeeting ? (
+              <>
+                <b>{nextMeeting.title}</b> is {fmtDate(nextMeeting.date)}, in {differenceInCalendarDays(new Date(nextMeeting.date), new Date(DEMO_TODAY))} days. Atlas can prepare questions, open issues and lessons from past deals.
+              </>
+            ) : (
+              'No meetings in the next week. Ask Atlas what needs your attention.'
+            )}
+          </BriefRow>
+          <BriefRow icon={<IconChartDots size={16} color="#b42318" />} tone="#fdecec" title="This deal vs. your previous deals" href={`${base}/research`} cta="Benchmarks">
+            {bench ?? 'Benchmarks appear once Atlas has extracted the target’s metrics.'}
+          </BriefRow>
+        </SimpleGrid>
+      </Box>
+
       <SimpleGrid cols={{ base: 2, sm: 3, xl: 6 }} spacing="md">
-        <Kpi tone="ink" icon={<IconProgress size={16} />} label="Diligence" value={`${acq.phases.diligence.progress}%`} sub={`${ws.reduce((a, w) => a + w.done, 0)} of ${ws.reduce((a, w) => a + w.total, 0)} items`} />
+        <Kpi tone="ink" icon={<IconProgress size={16} />} label={PHASES.find((p) => p.key === acq.currentPhase)!.short} value={`${acq.phases[acq.currentPhase].progress}%`} sub={ws.length ? `${ws.reduce((a, w) => a + w.done, 0)} of ${ws.reduce((a, w) => a + w.total, 0)} diligence items` : 'current phase'} />
         <Kpi tone="blue" icon={<IconGavel size={16} />} label="Decisions" value={pendingDecisions.length} sub={`pending · ${decisions.filter((d) => d.status === 'Approved').length} approved`} />
         <Kpi tone="orange" icon={<IconAlertTriangle size={16} />} label="High findings" value={critical.length} sub={`open · ${findings.filter((f) => f.status !== 'Dismissed').length} findings total`} />
         <Kpi tone="red" icon={<IconClockExclamation size={16} />} label="Overdue" value={overdue.length} sub={`work items · ${blocked.length} blocked`} />
@@ -184,7 +260,7 @@ export default function OverviewPage() {
               )}
             </Section>
 
-            <Section title="What do you want to do?">
+            <Section title="Ask Atlas for an outcome">
               <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={8}>
                 {asks.map((a) => {
                   const content = (
@@ -241,13 +317,16 @@ export default function OverviewPage() {
                 </Stack>
               </Section>
               <Section
-                title="Thesis tracker"
+                title={acq.metrics ? 'Playbook fit' : 'Thesis tracker'}
                 right={
                   <Anchor component={Link} href={`${base}/phase/strategy`} size="xs">
                     Thesis
                   </Anchor>
                 }
               >
+                {acq.metrics ? (
+                  <ThesisFit acq={acq} compact />
+                ) : (
                 <Stack gap={8}>
                   {acq.thesis.assumptions.map((a) => {
                     const color = { Supported: 'teal', 'At risk': 'orange', Contradicted: 'red', Untested: 'gray' }[a.status];
@@ -275,6 +354,7 @@ export default function OverviewPage() {
                     );
                   })}
                 </Stack>
+                )}
               </Section>
             </SimpleGrid>
           </Stack>

@@ -22,7 +22,7 @@ export function Logo({ dark = true }: { dark?: boolean }) {
         <circle cx="20" cy="18.5" r="1.9" fill="#c9a24b" />
       </svg>
       <Box lh={1.05}>
-        <Text fw={600} fz={13.5} c={dark ? 'white' : 'dark'} style={{ letterSpacing: '-0.01em' }}>
+        <Text fw={600} fz={13.5} c={dark ? 'white' : 'dark'} style={{ letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
           {ACQUIRER.name}
         </Text>
         <Text fz={10.5} c={dark ? '#8fa2c0' : 'dimmed'} fw={500} style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}>
@@ -45,7 +45,7 @@ export function UserSwitcher() {
             <Avatar size={26} radius="xl" color={p.color} variant="filled" fz={10.5}>
               {p.initials}
             </Avatar>
-            <Box visibleFrom="md" lh={1.15}>
+            <Box visibleFrom="lg" lh={1.15} style={{ whiteSpace: 'nowrap' }}>
               <Text fz={12.5} fw={600} c="white">
                 {p.name}
               </Text>
@@ -194,17 +194,17 @@ export function TopBar({ acqId }: { acqId?: string }) {
             ))}
           </Group>
         </Group>
-        <UnstyledButton className="search-trigger" onClick={() => spotlight.open()} visibleFrom="lg" aria-label="Search">
+        <UnstyledButton className="search-trigger" onClick={() => spotlight.open()} visibleFrom="xl" aria-label="Search" style={{ width: 280 }}>
           <IconSearch size={14} />
           <span style={{ flex: 1 }}>Search the deal portfolio</span>
           <span className="kbd">⌘K</span>
         </UnstyledButton>
         <Group gap={6} wrap="nowrap">
-          <ActionIcon variant="subtle" color="gray.4" onClick={() => spotlight.open()} hiddenFrom="lg" aria-label="Search">
+          <ActionIcon variant="subtle" color="gray.4" onClick={() => spotlight.open()} hiddenFrom="xl" aria-label="Search">
             <IconSearch size={17} />
           </ActionIcon>
           <Tooltip label="Every company, person, document and number in this prototype is fictional." multiline w={240}>
-            <Box visibleFrom="sm" px={8} py={3} style={{ border: '1px solid rgba(201,162,75,.45)', borderRadius: 5, color: '#e3c27a', fontSize: 10.5, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase' }}>
+            <Box visibleFrom="xl" px={8} py={3} style={{ whiteSpace: 'nowrap', border: '1px solid rgba(201,162,75,.45)', borderRadius: 5, color: '#e3c27a', fontSize: 10.5, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase' }}>
               Synthetic data
             </Box>
           </Tooltip>
