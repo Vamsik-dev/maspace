@@ -57,6 +57,31 @@ The moat is not the LLM, and not the workflow UI. It is **structured, institutio
 
 
 
+## Market evidence: Deloitte GenAI in M&A studies (2025–2026)
+
+These figures come from search summaries. The Deloitte page was not directly reachable from the build environment, so verify them against the source before quoting externally.
+
+**2026 GenAI in M&A Pulse Survey** (500 corporate and PE leaders):
+- 90% use AI in M&A.
+- Only **37%** use it across multiple stages of the deal lifecycle.
+- The benefits they report are coordination benefits: automated status reporting (66%), better decision-making (60%) and cross-functional coordination (51%).
+
+**2025 study:**
+- 86% had integrated GenAI into M&A workflows, and 65% had done so within the past year.
+- Most respondents had invested $1M or more (88% of PE, 77% of corporates).
+- Use is concentrated early in the deal: strategy and market assessment (40%), target screening (35%) and diligence (35%).
+- The top barriers are data security (67%) and data quality and availability (65%).
+
+Deloitte has also launched an **M&A Platform**. It runs agentic workflows from strategy through integration, has been used in more than 1,000 client engagements, and is delivered through Deloitte's own service platform.
+
+**What this means for us:**
+1. **The gap is connection, not adoption.** Nearly everyone uses AI, but only about a third use it across stages. Our Finding → Risk → Decision → Action → Outcome graph is the connective tissue.
+2. **Lead the SME demo with coordination.** The briefing, the review queue, the decision log, the auto-generated weekly update and the IC memo map directly onto the benefits respondents already report. Document reading alone is not the lead.
+3. **Integration, post-close and learning are underserved.** Adoption is front-loaded, so the outcome → lesson → playbook loop is where competition is thinnest.
+4. **Answer the security and data-quality objections in the product.** Tenant isolation, no training on customer data, cited evidence, confidence levels, and "missing data" flags on reconstructed deals.
+5. **Position against advisor-owned platforms.** An advisor platform's memory lives inside the advisor's engagements. Ours belongs to the acquirer and carries across advisors and deals. Lean acquirers can't buy a Big Four platform engagement for every deal, which confirms the wedge.
+6. **The survey skews large.** Respondents had invested $1M or more in GenAI for M&A. Lean serial acquirers are likely under-represented, and under-served.
+
 ## The answer to "do users fill in every field?"
 
 No. If users have to type in every finding, risk, decision and work item, we have built a nicer M&A project tracker, not the product we set out to build.
@@ -162,6 +187,11 @@ Tier A is in the prototype now. Tier B is the proposed MVP. Tier C comes later.
 5. What would this be worth, and who signs?
 
 ## Sources
+
+- [Deloitte: 2026 Generative AI in M&A Pulse Study](https://www.deloitte.com/us/en/what-we-do/capabilities/mergers-acquisitions/articles/m-and-a-generative-ai-study.html)
+- [Deloitte press release: M&A Platform with agentic AI](https://www.deloitte.com/us/en/about/press-room/deloitte-announces-ma-platform.html)
+- [PR Newswire: 86% of corporate and PE leaders use GenAI in dealmaking (2025)](https://www.prnewswire.com/news-releases/new-deloitte-survey-86-of-corporate-and-private-equity-leaders-now-use-generative-ai-in-dealmaking-with-plans-to-boost-spending-in-2025-302579881.html)
+- [Accounting Today: Deloitte debuts AI-enabled M&A platform](https://accountingtoday.com/list/deloitte-touts-ai-enabled-m-a-platform)
 
 - [Ansarada: Best AI data rooms for due diligence (2026)](https://www.ansarada.com/article/best-ai-data-rooms-due-diligence-2026)
 - [Papermark: Best AI virtual data rooms for M&A due diligence in 2026](https://www.papermark.com/blog/best-ai-virtual-data-room-for-m-and-a-due-diligence)
