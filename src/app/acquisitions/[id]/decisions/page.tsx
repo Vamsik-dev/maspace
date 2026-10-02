@@ -46,7 +46,7 @@ export default function DecisionsPage() {
       />
       <Stack gap="sm">
         {list.length === 0 && (
-          <Box style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+          <Box className="panel">
             <Empty title="No decisions here">Open a decision when the team needs to choose between options. Decisions can also be created from a finding.</Empty>
           </Box>
         )}
@@ -55,7 +55,7 @@ export default function DecisionsPage() {
           const rec = d.options.find((o) => o.id === d.recommendation?.optionId);
           const out = d.options.find((o) => o.id === d.outcome?.optionId);
           return (
-            <Box key={d.id} component={Link} href={`/acquisitions/${id}/decisions/${d.id}`} p="md" style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8, display: 'block' }} className="row-link">
+            <Box key={d.id} component={Link} href={`/acquisitions/${id}/decisions/${d.id}`} p="md" className="panel card-link" style={{ display: 'block' }}>
               <Group justify="space-between" align="flex-start" wrap="nowrap">
                 <Box style={{ minWidth: 0 }}>
                   <Group gap={6} mb={4}>

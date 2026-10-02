@@ -11,7 +11,10 @@ npm install
 npm run dev        # http://localhost:3000
 npm run build && npm start   # production build
 npm run lint       # TypeScript type check
+npm run build:share  # one self-contained HTML file (hash routing) → share-dist/share/index.html
 ```
+
+`build:share` bundles the same pages with Vite into a single HTML file that runs without a server, so the prototype can be shared as a link. It swaps `next/link`, `next/navigation` and `next/dynamic` for small hash-routing shims in `src/share/`. In that build, Print and file export are hidden because sandboxed hosts block them.
 
 Start at **Prototype guide** (`/guide`) for a 10-minute tour and the questions we want answered. Use **Feedback** on any screen to capture notes (stored in the browser, exportable as Markdown). The reset button in the top bar restores the demo to its starting state.
 
@@ -49,7 +52,7 @@ Atlas answers are composed deterministically from the structured demo data, so t
 - **Objective changed** from "build the platform" to "validate the product model with an SME", so the backend (FastAPI/Postgres/pgvector/S3/workers), auth, RAG and integrations are **deliberately not built**.
 - **Stack chosen (smallest coherent set):**
   - Next.js 16 (App Router) + React 19 + TypeScript.
-  - **Mantine 9** as the single UI system. BlockNote's official Mantine binding means the editor and the app share one component system, so we don't mix MUI or shadcn.
+  - **Mantine 9** as the single UI system, themed for an enterprise look: navy command bar, cobalt brand, cool slate neutrals, IBM Plex Sans/Mono. `@mantine/spotlight` powers ⌘K search across deals, findings, decisions, risks, documents and work. BlockNote's official Mantine binding means the editor and the app share one component system, so we don't mix MUI or shadcn.
   - **BlockNote** as the single rich-text editor, used for deliverables only.
   - **Zustand** with `persist` as an in-browser stand-in for the API, plus a small ephemeral UI store.
   - `@tabler/icons-react`, `date-fns`.

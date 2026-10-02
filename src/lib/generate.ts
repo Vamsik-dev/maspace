@@ -1,7 +1,7 @@
 import type { Citation, Deliverable } from './types';
 import type { useStore } from './store';
 import { personById } from '@/data/people';
-import { PHASES, fmtK, wsLabel } from './meta';
+import { PHASES, appHref, fmtK, wsLabel } from './meta';
 import { fmtDate } from './atlas';
 
 // Controlled generation: deliverables are assembled from structured deal data
@@ -29,7 +29,7 @@ function cite(s: S, acqId: string, c: Citation[]): Inline[] {
     const d = s.documents.find((d) => d.id === x.docId);
     if (!d) return;
     const short = d.name.replace(/\.(pdf|xlsx|docx|pptx|csv)$/i, '').split(' — ')[0];
-    out.push({ type: 'link', href: `/acquisitions/${acqId}/documents/${d.id}${x.page ? `?page=${x.page}` : ''}`, content: `${short}${x.page ? `, p.${x.page}` : ''}` });
+    out.push({ type: 'link', href: appHref(`/acquisitions/${acqId}/documents/${d.id}${x.page ? `?page=${x.page}` : ''}`), content: `${short}${x.page ? `, p.${x.page}` : ''}` });
     if (idx < c.length - 1) out.push('; ');
   });
   out.push(']');

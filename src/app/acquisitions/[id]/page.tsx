@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Group, SimpleGrid, Stack, Text, UnstyledButton, Badge, Anchor, Grid, ThemeIcon, Tooltip } from '@mantine/core';
-import { IconAlertTriangle, IconGavel, IconClockExclamation, IconCalendarEvent, IconSparkles, IconCheck, IconBan, IconCircleDashed } from '@tabler/icons-react';
+import { IconProgress, IconTarget, IconAlertTriangle, IconGavel, IconClockExclamation, IconCalendarEvent, IconSparkles, IconCheck, IconBan, IconCircleDashed } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -13,15 +13,20 @@ import { workstreamProgress } from '@/lib/derive';
 import { Section, PersonAvatar, Meter, personName, StatusBadge } from '@/components/ui';
 import { differenceInCalendarDays } from 'date-fns';
 
-function Kpi({ label, value, sub, tip }: { label: string; value: ReactNode; sub?: ReactNode; tip?: string }) {
+function Kpi({ label, value, sub, tip, icon, tone }: { label: string; value: ReactNode; sub?: ReactNode; tip?: string; icon: ReactNode; tone: string }) {
   const inner = (
-    <Box>
-      <Text className="label">{label}</Text>
-      <Text fz={20} fw={600} className="num" lh={1.3}>
+    <Box className="panel" p="md" h="100%">
+      <Group justify="space-between" align="flex-start" wrap="nowrap" mb={10}>
+        <Text className="label">{label}</Text>
+        <ThemeIcon size={26} radius="md" variant="light" color={tone}>
+          {icon}
+        </ThemeIcon>
+      </Group>
+      <Text fz={26} fw={600} className="num" lh={1.1} style={{ letterSpacing: '-0.02em' }}>
         {value}
       </Text>
       {sub && (
-        <Text size="xs" c="dimmed" lh={1.3}>
+        <Text size="xs" c="dimmed" mt={6} lh={1.35}>
           {sub}
         </Text>
       )}
@@ -87,39 +92,31 @@ export default function OverviewPage() {
 
   return (
     <Stack gap="lg">
-      {/* Header */}
-      <Box>
-        <Group gap={8} mb={4}>
-          <Text className="label">Acquisition · {acq.codename}</Text>
-        </Group>
-        <Group justify="space-between" align="flex-end">
-          <Box>
-            <Text fz={26} fw={650} lh={1.15} style={{ letterSpacing: '-0.015em' }}>
-              {acq.name}
-            </Text>
-            <Text size="sm" c="dimmed" mt={4}>
-              {acq.stageLabel}
-              {acq.targetClose && ` · Target close ${fmtDate(acq.targetClose)}`} · Deal lead {personName(acq.dealLeadId)}
-            </Text>
-          </Box>
-          <Group gap={-6}>
-            {acq.team.slice(0, 8).map((m) => (
-              <PersonAvatar key={m.personId} id={m.personId} size={26} />
-            ))}
-          </Group>
-        </Group>
-      </Box>
+      <Group justify="space-between" align="flex-end" wrap="wrap" gap="sm">
+        <Box>
+          <Text className="label" c="ink.7" mb={4}>
+            Deal overview
+          </Text>
+          <Text fz={24} fw={600} lh={1.2} style={{ letterSpacing: '-0.02em' }}>
+            {acq.stageLabel}
+          </Text>
+          <Text size="sm" c="dimmed" mt={4}>
+            {acq.targetClose ? `Target close ${fmtDate(acq.targetClose)} · ` : ''}Deal lead {personName(acq.dealLeadId)} · {acq.team.length} on the deal team
+          </Text>
+        </Box>
+        <Text size="xs" c="dimmed">
+          As of {fmtDate(DEMO_TODAY)}, 2026
+        </Text>
+      </Group>
 
-      <Box p="md" style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
-        <SimpleGrid cols={{ base: 2, sm: 3, lg: 6 }} spacing="lg">
-          <Kpi label="Revenue FY25" value={fmtM(acq.target.revenue)} sub={acq.target.industry} />
-          <Kpi label="Adj. EBITDA" value={fmtM(acq.target.ebitda)} sub={acq.target.ebitdaBasis} />
-          <Kpi label="Working EV" value={fmtM(acq.ev)} sub={`${(acq.ev / acq.target.ebitda).toFixed(2)}x adj. EBITDA`} tip={acq.evBasis} />
-          <Kpi label="Employees" value={acq.target.employees || '—'} sub={acq.target.branches.length ? `${acq.target.branches.length} branches` : undefined} />
-          <Kpi label="To target close" value={closeIn !== null ? `${closeIn} days` : '—'} sub={acq.targetClose ? fmtDate(acq.targetClose) : 'Not set'} />
-          <Kpi label="Thesis" value={`${acq.thesis.assumptions.filter((a) => a.status === 'Supported').length}/${acq.thesis.assumptions.length}`} sub="assumptions supported" />
-        </SimpleGrid>
-      </Box>
+      <SimpleGrid cols={{ base: 2, sm: 3, xl: 6 }} spacing="md">
+        <Kpi tone="ink" icon={<IconProgress size={16} />} label="Diligence" value={`${acq.phases.diligence.progress}%`} sub={`${ws.reduce((a, w) => a + w.done, 0)} of ${ws.reduce((a, w) => a + w.total, 0)} items`} />
+        <Kpi tone="blue" icon={<IconGavel size={16} />} label="Decisions" value={pendingDecisions.length} sub={`pending · ${decisions.filter((d) => d.status === 'Approved').length} approved`} />
+        <Kpi tone="orange" icon={<IconAlertTriangle size={16} />} label="High findings" value={critical.length} sub={`open · ${findings.filter((f) => f.status !== 'Dismissed').length} findings total`} />
+        <Kpi tone="red" icon={<IconClockExclamation size={16} />} label="Overdue" value={overdue.length} sub={`work items · ${blocked.length} blocked`} />
+        <Kpi tone="teal" icon={<IconTarget size={16} />} label="Thesis" value={`${acq.thesis.assumptions.filter((a) => a.status === 'Supported').length}/${acq.thesis.assumptions.length}`} sub={`supported · ${acq.thesis.assumptions.filter((a) => a.status === 'Contradicted').length} contradicted`} />
+        <Kpi tone="gray" icon={<IconCalendarEvent size={16} />} label="Close in" value={closeIn !== null ? `${closeIn} days` : '—'} sub={acq.targetClose ? fmtDate(acq.targetClose) : 'Not set'} tip={acq.evBasis} />
+      </SimpleGrid>
 
       <Grid gap="lg">
         <Grid.Col span={{ base: 12, lg: 8 }}>
@@ -149,7 +146,7 @@ export default function OverviewPage() {
               ) : (
                 <Stack gap={0}>
                   {rows.slice(0, 9).map((r) => (
-                    <UnstyledButton key={r.key} component={Link} href={r.href} px="md" py={9} className="row-link" style={{ borderBottom: '1px solid #f5f5f4', borderRadius: 0 }}>
+                    <UnstyledButton key={r.key} component={Link} href={r.href} px="md" py={9} className="row-link" style={{ borderBottom: '1px solid #f1f4f9', borderRadius: 0 }}>
                       <Group wrap="nowrap" gap="sm">
                         <ThemeIcon variant="light" color={r.tone} size={26}>
                           {r.icon}
@@ -285,29 +282,25 @@ export default function OverviewPage() {
 
         <Grid.Col span={{ base: 12, lg: 4 }}>
           <Stack gap="lg">
-            <Section title="Deal progress">
-              <Stack gap={6}>
-                {PHASES.map((p) => {
-                  const ph = acq.phases[p.key];
-                  return (
-                    <Link key={p.key} href={`${base}/phase/${p.key}`}>
-                    <Group justify="space-between" className="row-link" px={4} py={2} wrap="nowrap">
-                      <Group gap={8} wrap="nowrap">
-                        {ph.status === 'complete' ? <IconCheck size={14} color="#134a38" /> : ph.status === 'active' ? <IconCircleDashed size={14} color="#4fa182" /> : <Box w={14} />}
-                        <Text size="sm" c={ph.status === 'upcoming' ? 'dimmed' : undefined} fw={acq.currentPhase === p.key ? 600 : 400}>
-                          {p.short}
-                        </Text>
-                      </Group>
-                      <Text size="xs" c="dimmed" className="num">
-                        {ph.status === 'complete' ? (ph.completedOn ? fmtDate(ph.completedOn) : 'Done') : ph.status === 'active' ? `${ph.progress}%` : '—'}
-                      </Text>
-                    </Group>
-                    </Link>
-                  );
-                })}
-                <Text size="xs" c="dimmed" mt={4}>
-                  Phases overlap: agreement, financing and integration planning run in parallel with diligence.
-                </Text>
+            <Section title="Transaction snapshot">
+              <Stack gap={0}>
+                {[
+                  ['Target', acq.target.legalName],
+                  ['Ownership', acq.target.ownership],
+                  ['Structure', '100% equity · cash-free, debt-free'],
+                  ['Working EV', `${fmtM(acq.ev)} · ${(acq.ev / acq.target.ebitda).toFixed(2)}x adj. EBITDA`],
+                  ['EV basis', acq.evBasis],
+                  ['Strategy', acq.strategy],
+                ].map(([k, v]) => (
+                  <Group key={k} justify="space-between" align="flex-start" wrap="nowrap" py={7} style={{ borderBottom: '1px solid var(--app-border-soft)' }}>
+                    <Text size="xs" c="dimmed" w={90} style={{ flexShrink: 0 }}>
+                      {k}
+                    </Text>
+                    <Text size="sm" ta="right" className="num" lh={1.4}>
+                      {v}
+                    </Text>
+                  </Group>
+                ))}
               </Stack>
             </Section>
 

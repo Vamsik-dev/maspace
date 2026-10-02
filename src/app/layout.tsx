@@ -1,6 +1,11 @@
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
-import '@blocknote/core/fonts/inter.css';
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-500.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+import '@fontsource/ibm-plex-sans/latin-700.css';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@mantine/spotlight/styles.css';
 import './globals.css';
 import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 import type { Metadata } from 'next';
@@ -8,7 +13,7 @@ import type { ReactNode } from 'react';
 import { Providers } from '@/components/Providers';
 
 export const metadata: Metadata = {
-  title: 'Meridian · Acquisition Workspace (prototype)',
+  title: 'Meridian Deal Workspace',
   description: 'High-fidelity front-end prototype of an intelligent M&A workspace for lean serial acquirers. Synthetic demo data.',
 };
 

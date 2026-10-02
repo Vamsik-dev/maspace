@@ -59,7 +59,7 @@ export default function FindingsPage() {
           </Badge>
         )}
       </Group>
-      <Box style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+      <Box className="panel">
         {list.length === 0 ? (
           <Empty title="No findings match">Findings appear here as diligence progresses — recorded by the team, advisors, or proposed by Atlas from documents.</Empty>
         ) : (
@@ -76,7 +76,7 @@ export default function FindingsPage() {
             </Table.Thead>
             <Table.Tbody>
               {list.map((f) => (
-                <Table.Tr key={f.id} style={{ cursor: 'pointer', background: f.status === 'Proposed' ? '#faf5ff' : undefined }} onClick={() => router.push(`/acquisitions/${id}/findings/${f.id}`)}>
+                <Table.Tr key={f.id} style={{ cursor: 'pointer', background: f.status === 'Proposed' ? '#f7f3ff' : undefined }} onClick={() => router.push(`/acquisitions/${id}/findings/${f.id}`)}>
                   <Table.Td>
                     <SeverityBadge severity={f.severity} positive={f.positive} />
                   </Table.Td>

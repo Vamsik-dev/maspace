@@ -17,7 +17,7 @@ const probOrder: Risk['probability'][] = ['Likely', 'Possible', 'Unlikely'];
 function Heatmap({ risks, onPick }: { risks: Risk[]; onPick: (id: string) => void }) {
   const bg = (si: number, pi: number) => {
     const score = (3 - si) + (2 - pi);
-    return score >= 4 ? '#fee2e2' : score >= 3 ? '#ffedd5' : score >= 2 ? '#fef9c3' : '#f5f5f4';
+    return score >= 4 ? '#fee2e2' : score >= 3 ? '#ffedd5' : score >= 2 ? '#fef9c3' : '#f1f4f9';
   };
   return (
     <Box>
@@ -38,7 +38,7 @@ function Heatmap({ risks, onPick }: { risks: Risk[]; onPick: (id: string) => voi
                   <Box key={s + p} h={44} p={4} style={{ background: bg(si, pi), borderRadius: 4, display: 'flex', gap: 4, flexWrap: 'wrap', alignContent: 'flex-start' }}>
                     {cell.map((r) => (
                       <Tooltip key={r.id} label={r.title}>
-                        <Box onClick={() => onPick(r.id)} w={18} h={18} style={{ borderRadius: 99, background: '#1c1917', color: 'white', fontSize: 10, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+                        <Box onClick={() => onPick(r.id)} w={18} h={18} style={{ borderRadius: 99, background: '#0f1b2d', color: 'white', fontSize: 10, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
                           {risks.indexOf(r) + 1}
                         </Box>
                       </Tooltip>
@@ -86,7 +86,7 @@ function RisksInner() {
       <Group align="flex-start" gap="lg" wrap="nowrap">
         <Box style={{ flex: 1, minWidth: 0 }}>
           <SegmentedControl size="xs" mb="sm" value={view} onChange={setView} data={[{ value: 'open', label: 'Open & mitigating' }, { value: 'all', label: `All (${all.length})` }]} />
-          <Box style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+          <Box className="panel">
             {list.length === 0 ? (
               <Empty title="No risks recorded">Create risks from findings. A finding is what we observed; a risk is what could go wrong because of it.</Empty>
             ) : (
@@ -103,7 +103,7 @@ function RisksInner() {
                 </Table.Thead>
                 <Table.Tbody>
                   {list.map((r) => (
-                    <Table.Tr key={r.id} onClick={() => pick(r.id)} style={{ cursor: 'pointer' }} bg={sel === r.id ? '#f5f5f4' : undefined}>
+                    <Table.Tr key={r.id} onClick={() => pick(r.id)} style={{ cursor: 'pointer' }} bg={sel === r.id ? '#f1f4f9' : undefined}>
                       <Table.Td>
                         <Text size="xs" c="dimmed">
                           {all.indexOf(r) + 1}
@@ -136,7 +136,7 @@ function RisksInner() {
             )}
           </Box>
         </Box>
-        <Box w={300} p="md" style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8, flexShrink: 0 }} visibleFrom="md">
+        <Box w={300} p="md" className="panel" style={{ flexShrink: 0 }} visibleFrom="md">
           <Text size="sm" fw={600} mb="sm">
             Severity × probability
           </Text>

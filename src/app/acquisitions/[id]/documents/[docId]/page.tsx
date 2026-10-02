@@ -95,7 +95,7 @@ function Viewer() {
 
         <Stack gap="md" style={{ flex: 1, minWidth: 0 }}>
           {doc.status !== 'Processed' && (
-            <Group gap="sm" p="md" style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+            <Group gap="sm" p="md" className="panel">
               <Loader size="sm" />
               <Text size="sm">{doc.status === 'Queued' ? 'Security scan in progress…' : 'Extracting text, tables and page references…'}</Text>
             </Group>
@@ -122,7 +122,7 @@ function Viewer() {
               </Stack>
               {p.table && (
                 <Table mt="md" withTableBorder withColumnBorders fz="xs" className="num">
-                  <Table.Thead bg="#fafaf9">
+                  <Table.Thead bg="#f8fafc">
                     <Table.Tr>
                       {p.table.columns.map((c) => (
                         <Table.Th key={c}>{c}</Table.Th>

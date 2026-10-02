@@ -61,30 +61,43 @@ export function Person({ id, withTitle, size = 20 }: { id: string; withTitle?: b
 
 export const personName = (id: string) => (id === 'atlas' ? 'Atlas' : id === 'automation' ? 'Automation' : personById(id)?.name ?? id);
 
-export function StatusBadge({ status, size = 'sm' }: { status: string; size?: 'xs' | 'sm' | 'md' }) {
+const PILL: Record<string, [string, string, string]> = {
+  gray: ['#f1f4f9', '#4b5a70', '#94a3b8'],
+  blue: ['#eef3ff', '#2f53bb', '#3a5fd1'],
+  teal: ['#e7f6f1', '#0e7c66', '#12a383'],
+  orange: ['#fff3e6', '#b25e09', '#f08c1c'],
+  red: ['#fdecec', '#b42318', '#e5484d'],
+  yellow: ['#fdf6e3', '#8a6510', '#d6a419'],
+  grape: ['#f5effd', '#6d3fd4', '#8e5cf0'],
+  violet: ['#f5effd', '#6d3fd4', '#8e5cf0'],
+  ink: ['#eef3ff', '#2f53bb', '#3a5fd1'],
+};
+
+export function Pill({ color = 'gray', children, solid }: { color?: string; children: ReactNode; solid?: boolean }) {
+  const [bg, fg, dot] = PILL[color] ?? PILL.gray;
   return (
-    <Badge color={STATUS_COLOR[status] ?? 'gray'} size={size} variant="light">
-      {status}
-    </Badge>
+    <span className="pill" style={solid ? { background: dot, color: 'white' } : { background: bg, color: fg }}>
+      <i style={{ background: solid ? 'rgba(255,255,255,.85)' : dot }} />
+      {children}
+    </span>
   );
 }
 
+export function StatusBadge({ status }: { status: string; size?: 'xs' | 'sm' | 'md' }) {
+  return <Pill color={STATUS_COLOR[status] ?? 'gray'}>{status}</Pill>;
+}
+
 export function SeverityBadge({ severity, positive }: { severity: Severity; positive?: boolean }) {
-  if (positive)
-    return (
-      <Badge color="teal" variant="light">
-        Supports thesis
-      </Badge>
-    );
+  if (positive) return <Pill color="teal">Supports thesis</Pill>;
   return (
-    <Badge color={SEVERITY_COLOR[severity]} variant={severity === 'Critical' ? 'filled' : 'light'}>
+    <Pill color={SEVERITY_COLOR[severity]} solid={severity === 'Critical'}>
       {severity}
-    </Badge>
+    </Pill>
   );
 }
 
 export function SeverityDot({ severity }: { severity: Severity }) {
-  const c = { Critical: '#dc2626', High: '#ea580c', Medium: '#ca8a04', Low: '#a8a29e' }[severity];
+  const c = { Critical: '#dc2626', High: '#ea580c', Medium: '#ca8a04', Low: '#94a3b8' }[severity];
   return <Box w={8} h={8} style={{ borderRadius: 99, background: c, flexShrink: 0 }} />;
 }
 
@@ -228,18 +241,18 @@ export function DocIcon({ type, size = 16 }: { type: DocType; size?: number }) {
 
 export function PageHeader({ eyebrow, title, description, right }: { eyebrow?: ReactNode; title: ReactNode; description?: ReactNode; right?: ReactNode }) {
   return (
-    <Group justify="space-between" align="flex-end" mb="md" wrap="nowrap">
-      <Box>
+    <Group justify="space-between" align="flex-end" mb="lg" gap="md">
+      <Box style={{ minWidth: 0, flex: '1 1 420px' }}>
         {eyebrow && (
-          <Text className="label" mb={4}>
+          <Text className="label" mb={6} c="ink.7">
             {eyebrow}
           </Text>
         )}
-        <Text fz={22} fw={600} lh={1.25} style={{ letterSpacing: '-0.01em' }}>
+        <Text fz={26} fw={600} lh={1.2} style={{ letterSpacing: '-0.02em', textWrap: 'balance' }}>
           {title}
         </Text>
         {description && (
-          <Text size="sm" c="dimmed" mt={4} maw={720}>
+          <Text size="sm" c="dimmed" mt={6} maw={760} lh={1.55}>
             {description}
           </Text>
         )}
@@ -251,14 +264,16 @@ export function PageHeader({ eyebrow, title, description, right }: { eyebrow?: R
 
 export function Section({ title, right, children, pad = true }: { title: ReactNode; right?: ReactNode; children: ReactNode; pad?: boolean }) {
   return (
-    <Box style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
-      <Group justify="space-between" px="md" py={10} style={{ borderBottom: '1px solid var(--app-border)' }}>
-        <Box fz="sm" fw={600}>
+    <Box className="panel" style={{ overflow: 'hidden' }}>
+      <Group justify="space-between" px="md" h={46} wrap="nowrap" style={{ borderBottom: '1px solid var(--app-border-soft)' }}>
+        <Box fz={13.5} fw={600} c="#0f1b2d" style={{ letterSpacing: '-0.005em' }}>
           {title}
         </Box>
         {right}
       </Group>
-      <Box p={pad ? 'md' : 0}>{children}</Box>
+      <Box p={pad ? 'md' : 0} style={{ overflowX: pad ? undefined : 'auto' }}>
+        {children}
+      </Box>
     </Box>
   );
 }

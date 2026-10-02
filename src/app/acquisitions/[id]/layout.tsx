@@ -1,58 +1,35 @@
 'use client';
 
-import { Box, Group, ScrollArea, Stack, Text, UnstyledButton, RingProgress, Badge, Center } from '@mantine/core';
-import { IconCheck, IconLayoutDashboard, IconSparkles, IconColumns3, IconListCheck, IconAlertTriangle, IconShieldExclamation, IconGavel, IconFiles, IconFileText, IconUsers, IconActivity, IconArrowLeft } from '@tabler/icons-react';
+import { Box, Group, ScrollArea, Text, Tooltip } from '@mantine/core';
+import { IconChevronRight } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { differenceInCalendarDays } from 'date-fns';
 import { TopBar } from '@/components/Chrome';
 import { AtlasDrawer } from '@/components/Atlas';
+import { DealNav } from '@/components/DealNav';
 import { useStore } from '@/lib/store';
-import { PHASES, DEMO_TODAY } from '@/lib/meta';
-import { Empty } from '@/components/ui';
+import { PHASES, DEMO_TODAY, fmtM } from '@/lib/meta';
+import { Empty, PersonAvatar, Pill } from '@/components/ui';
 
-function NavItem({ href, icon, label, count, active, countColor }: { href: string; icon: ReactNode; label: ReactNode; count?: number; active: boolean; countColor?: string }) {
+function Metric({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <UnstyledButton component={Link} href={href} className="nav-link row-link" data-active={active || undefined} px={8} py={5}>
-      <Group gap={8} wrap="nowrap" justify="space-between">
-        <Group gap={8} wrap="nowrap">
-          <Box c={active ? 'ink.8' : 'stone.6'} style={{ display: 'flex' }}>
-            {icon}
-          </Box>
-          <Text size="sm" fw={active ? 600 : 450} truncate>
-            {label}
-          </Text>
-        </Group>
-        {count ? (
-          <Badge size="xs" variant={countColor ? 'light' : 'default'} color={countColor} circle={count < 10}>
-            {count}
-          </Badge>
-        ) : null}
-      </Group>
-    </UnstyledButton>
+    <Box>
+      <Text className="label" fz={10}>
+        {label}
+      </Text>
+      <Text fz={15} fw={600} className="num" lh={1.3}>
+        {value}
+      </Text>
+    </Box>
   );
-}
-
-function PhaseGlyph({ status, progress }: { status: string; progress: number }) {
-  if (status === 'complete')
-    return (
-      <Center w={16} h={16} style={{ borderRadius: 99, background: '#134a38' }}>
-        <IconCheck size={10} color="white" stroke={3} />
-      </Center>
-    );
-  if (status === 'active') return <RingProgress size={18} thickness={2.5} roundCaps sections={[{ value: Math.max(progress, 6), color: 'ink.6' }]} />;
-  return <Box w={14} h={14} mx={1} style={{ borderRadius: 99, border: '1.5px dashed #d6d3d1' }} />;
 }
 
 export default function WorkspaceLayout({ children }: { children: ReactNode }) {
   const { id } = useParams<{ id: string }>();
   const path = usePathname();
   const acq = useStore((s) => s.acquisitions.find((a) => a.id === id));
-  const openFindings = useStore((s) => s.findings.filter((f) => f.acqId === id && ['Proposed', 'Open', 'Under Review'].includes(f.status)).length);
-  const pendingDecisions = useStore((s) => s.decisions.filter((d) => d.acqId === id && (d.status === 'Open' || d.status === 'Under Review')).length);
-  const openRisks = useStore((s) => s.risks.filter((r) => r.acqId === id && (r.status === 'Open' || r.status === 'Mitigating')).length);
-  const overdue = useStore((s) => s.work.filter((w) => w.acqId === id && w.status !== 'Complete' && w.due && w.due < DEMO_TODAY).length);
-  const proposed = useStore((s) => s.findings.filter((f) => f.acqId === id && f.status === 'Proposed').length);
 
   if (!acq)
     return (
@@ -63,81 +40,78 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
     );
 
   const base = `/acquisitions/${id}`;
-  const is = (p: string) => path === base + p || path.startsWith(base + p + '/');
+  const closeIn = acq.targetClose ? differenceInCalendarDays(new Date(acq.targetClose), new Date(DEMO_TODAY)) : null;
 
   return (
-    <Box h="100vh" style={{ display: 'flex', flexDirection: 'column' }}>
+    <Box h="100dvh" style={{ display: 'flex', flexDirection: 'column' }}>
       <TopBar acqId={id} />
-      <Box style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        <Box w={236} style={{ borderRight: '1px solid var(--app-border)', background: 'var(--app-sidebar)', flexShrink: 0 }} className="no-print" visibleFrom="sm">
-          <ScrollArea h="100%" px={10} py={12}>
-            <UnstyledButton component={Link} href="/" px={8} mb={8}>
-              <Group gap={4}>
-                <IconArrowLeft size={12} color="var(--app-muted)" />
-                <Text size="xs" c="dimmed">
-                  Portfolio
-                </Text>
-              </Group>
-            </UnstyledButton>
-            <Box px={8} mb={12}>
-              <Text fw={650} size="md" lh={1.2}>
+      {/* Deal record header */}
+      <Box px={{ base: 'md', md: 'lg' }} pt={12} pb={12} style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)', flexShrink: 0 }} className="no-print">
+        <Group justify="space-between" align="center" wrap="wrap" gap="sm" mb={10}>
+          <Box style={{ minWidth: 0 }}>
+            <Group gap={6} mb={2}>
+              <Text component={Link} href="/" fz={12} c="dimmed" fw={500}>
+                Portfolio
+              </Text>
+              <IconChevronRight size={12} color="#94a3b8" />
+              <Text fz={12} c="dimmed" fw={500}>
+                {acq.codename}
+              </Text>
+            </Group>
+            <Group gap={10} wrap="wrap">
+              <Text component={Link} href={base} fz={20} fw={600} style={{ letterSpacing: '-0.015em' }}>
                 {acq.name}
               </Text>
-              <Text size="xs" c="dimmed">
-                {acq.codename} · {acq.target.industry}
+              <Pill color={acq.status === 'Active' ? 'teal' : 'gray'}>{acq.status}</Pill>
+              <Text fz={12.5} c="dimmed">
+                {acq.target.industry} · {acq.target.hq}
               </Text>
-            </Box>
-            <Stack gap={1}>
-              <NavItem href={base} icon={<IconLayoutDashboard size={16} />} label="Overview" active={path === base} />
-              <NavItem href={`${base}/atlas`} icon={<IconSparkles size={16} />} label="Ask Atlas" active={is('/atlas')} />
-            </Stack>
-
-            <Text className="label" px={8} mt="md" mb={4}>
-              Deal phases
-            </Text>
-            <Stack gap={1}>
-              {PHASES.map((p) => (
-                <NavItem
-                  key={p.key}
-                  href={`${base}/phase/${p.key}`}
-                  active={is(`/phase/${p.key}`)}
-                  icon={<PhaseGlyph status={acq.phases[p.key].status} progress={acq.phases[p.key].progress} />}
-                  label={
-                    <>
-                      <Text span c="dimmed" size="xs" mr={4}>
-                        {p.n}
-                      </Text>
-                      {p.short}
-                    </>
-                  }
-                />
+            </Group>
+          </Box>
+          <Group gap="xl" wrap="nowrap" visibleFrom="sm">
+            <Metric label="Revenue" value={fmtM(acq.target.revenue)} />
+            <Metric label="Adj. EBITDA" value={fmtM(acq.target.ebitda)} />
+            <Tooltip label={acq.evBasis} multiline w={260}>
+              <Box>
+                <Metric label="Working EV" value={fmtM(acq.ev)} />
+              </Box>
+            </Tooltip>
+            <Metric label="Target close" value={closeIn !== null ? `${closeIn}d` : '—'} />
+            <Group gap={-6} visibleFrom="lg">
+              {acq.team.slice(0, 6).map((m) => (
+                <PersonAvatar key={m.personId} id={m.personId} size={28} />
               ))}
-            </Stack>
-
-            <Text className="label" px={8} mt="md" mb={4}>
-              Execution
-            </Text>
-            <Stack gap={1}>
-              <NavItem href={`${base}/workstreams`} icon={<IconColumns3 size={16} />} label="Workstreams" active={is('/workstreams')} />
-              <NavItem href={`${base}/work`} icon={<IconListCheck size={16} />} label="Work items" count={overdue} countColor="red" active={is('/work')} />
-              <NavItem href={`${base}/findings`} icon={<IconAlertTriangle size={16} />} label="Findings" count={openFindings} countColor={proposed ? 'violet' : undefined} active={is('/findings')} />
-              <NavItem href={`${base}/risks`} icon={<IconShieldExclamation size={16} />} label="Risks" count={openRisks} active={is('/risks')} />
-              <NavItem href={`${base}/decisions`} icon={<IconGavel size={16} />} label="Decisions" count={pendingDecisions} countColor="blue" active={is('/decisions')} />
-            </Stack>
-
-            <Text className="label" px={8} mt="md" mb={4}>
-              Materials & people
-            </Text>
-            <Stack gap={1}>
-              <NavItem href={`${base}/documents`} icon={<IconFiles size={16} />} label="Documents" active={is('/documents')} />
-              <NavItem href={`${base}/deliverables`} icon={<IconFileText size={16} />} label="Deliverables" active={is('/deliverables')} />
-              <NavItem href={`${base}/team`} icon={<IconUsers size={16} />} label="Deal team" active={is('/team')} />
-              <NavItem href={`${base}/activity`} icon={<IconActivity size={16} />} label="Activity & automation" active={is('/activity')} />
-            </Stack>
+              {acq.team.length > 6 && (
+                <Text fz={11} c="dimmed" ml={10}>
+                  +{acq.team.length - 6}
+                </Text>
+              )}
+            </Group>
+          </Group>
+        </Group>
+        <Box style={{ overflowX: 'auto' }}>
+          <nav className="stepper" style={{ minWidth: 760 }} aria-label="Deal phases">
+            {PHASES.map((p) => {
+              const ph = acq.phases[p.key];
+              const current = path.startsWith(`${base}/phase/${p.key}`);
+              return (
+                <Link key={p.key} href={`${base}/phase/${p.key}`} className="step" data-status={ph.status} data-current={current || undefined} title={p.label}>
+                  {p.short}
+                  <small>{ph.status === 'complete' ? '✓' : ph.status === 'active' ? `${ph.progress}%` : ''}</small>
+                </Link>
+              );
+            })}
+          </nav>
+        </Box>
+      </Box>
+      <Box style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        <Box w={240} style={{ borderRight: '1px solid var(--app-border)', background: 'var(--app-sidebar)', flexShrink: 0 }} className="no-print" visibleFrom="md">
+          <ScrollArea h="100%" px={10} py={14}>
+            <DealNav acqId={id} withPhases={false} />
           </ScrollArea>
         </Box>
-        <ScrollArea style={{ flex: 1 }} id="workspace-scroll">
-          <Box px={{ base: 'md', md: 32 }} py={24} maw={1320}>
+        <ScrollArea style={{ flex: 1, minWidth: 0 }} id="workspace-scroll">
+          <Box px={{ base: 'md', md: 32 }} py={{ base: 'md', md: 28 }} maw={1360}>
             {children}
           </Box>
         </ScrollArea>

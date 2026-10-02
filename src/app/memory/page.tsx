@@ -113,7 +113,7 @@ export default function MemoryPage() {
             {PRIOR.slice()
               .reverse()
               .map((p) => (
-                <Box key={p.id} id={p.id} style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8, scrollMarginTop: 16 }}>
+                <Box key={p.id} id={p.id} className="panel" style={{ scrollMarginTop: 16, overflow: 'hidden' }}>
                   <Group justify="space-between" px="md" py={10} style={{ borderBottom: '1px solid var(--app-border)' }}>
                     <Box>
                       <Text fw={600}>{p.name}</Text>

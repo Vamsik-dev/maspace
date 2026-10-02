@@ -2,6 +2,10 @@ import type { PhaseKey, WorkstreamKey, Severity } from './types';
 
 export const DEMO_TODAY = '2026-10-02';
 
+/** True in the single-file shareable build (hash routing, sandboxed frame). */
+export const IS_SHARE = process.env.NEXT_PUBLIC_SHARE === '1';
+export const appHref = (path: string) => (IS_SHARE ? `#${path}` : path);
+
 export const PHASES: { key: PhaseKey; n: number; label: string; short: string; purpose: string }[] = [
   { key: 'strategy', n: 1, label: 'Strategy & Target Screening', short: 'Strategy', purpose: 'Why this target fits the acquisition strategy, and whether to engage.' },
   { key: 'valuation', n: 2, label: 'Preliminary Valuation / IOI', short: 'Valuation', purpose: 'What the business is worth to us and what we are willing to offer.' },

@@ -38,7 +38,7 @@ export default function ActivityPage() {
               { value: 'ai', label: 'Atlas & automation' },
             ]}
           />
-          <Box p="md" style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+          <Box p="md" className="panel">
             <Stack gap="lg">
               {days.map((d) => (
                 <Box key={d}>

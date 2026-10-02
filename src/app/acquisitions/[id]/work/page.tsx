@@ -74,7 +74,7 @@ function WorkInner() {
         <Select size="xs" w={150} placeholder="Phase" clearable data={PHASES.map((p) => ({ value: p.key, label: p.short }))} value={phase} onChange={setPhase} />
         <Select size="xs" w={160} placeholder="Owner" clearable searchable data={PEOPLE.map((p) => ({ value: p.id, label: p.name }))} value={owner} onChange={setOwner} />
       </Group>
-      <Box style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+      <Box className="panel">
         <WorkTable items={items} onOpen={setItem} />
       </Box>
       <WorkItemDrawer itemId={item} onClose={() => setItem(null)} />

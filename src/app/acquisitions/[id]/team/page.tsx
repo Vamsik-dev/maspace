@@ -94,14 +94,14 @@ export default function TeamPage() {
   return (
     <Stack gap="md">
       <PageHeader eyebrow="People" title="Deal team" description="Who is on this acquisition, what they own and what they can approve. External advisors only see the workstreams they are assigned to." />
-      <Box style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+      <Box className="panel">
         <Text px="md" pt="sm" className="label">
           Meridian ({internal.length})
         </Text>
         <Rows list={internal} />
       </Box>
       {advisors.length > 0 && (
-        <Box style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+        <Box className="panel">
           <Text px="md" pt="sm" className="label">
             External advisors ({advisors.length}) · access limited to assigned workstreams
           </Text>

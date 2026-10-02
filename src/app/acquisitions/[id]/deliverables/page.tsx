@@ -61,13 +61,13 @@ export default function DeliverablesPage() {
         }
       />
       {list.length === 0 && (
-        <Box style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+        <Box className="panel">
           <Empty title="No deliverables yet">Generate a target brief to start. Deliverables update as the deal data changes.</Empty>
         </Box>
       )}
       <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="md">
         {list.map((d) => (
-          <Box key={d.id} component={Link} href={`/acquisitions/${id}/deliverables/${d.id}`} p="md" className="row-link" style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8, display: 'block' }}>
+          <Box key={d.id} component={Link} href={`/acquisitions/${id}/deliverables/${d.id}`} p="md" className="panel card-link" style={{ display: 'block' }}>
             <Group justify="space-between" mb={8}>
               <Badge variant="default" leftSection={<IconFileText size={11} />}>
                 {d.type}

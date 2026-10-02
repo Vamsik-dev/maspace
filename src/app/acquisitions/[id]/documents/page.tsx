@@ -71,7 +71,7 @@ export default function DocumentsPage() {
       </Group>
 
       {hits.length > 0 && (
-        <Box p="md" style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+        <Box p="md" className="panel">
           <Text className="label" mb={8}>
             {hits.length} matches inside documents
           </Text>
@@ -96,7 +96,7 @@ export default function DocumentsPage() {
         </Box>
       )}
 
-      <Box style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+      <Box className="panel">
         {list.length === 0 ? (
           <Empty title={docs.length ? 'No documents match' : 'No documents yet'} action={!docs.length ? <Button onClick={() => setOpen(true)}>Upload the CIM</Button> : undefined}>
             {docs.length ? 'Try a different search.' : 'Upload a CIM or financials to start. Atlas extracts text and page references so findings can cite them.'}

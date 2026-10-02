@@ -7,6 +7,7 @@ import { TopBar } from '@/components/Chrome';
 import { PageHeader, Empty } from '@/components/ui';
 import { useStore } from '@/lib/store';
 import { useUi } from '@/lib/ui-store';
+import { IS_SHARE } from '@/lib/meta';
 
 export default function FeedbackPage() {
   const fb = useStore((s) => s.feedback);
@@ -29,10 +30,10 @@ export default function FeedbackPage() {
           description="Notes captured while using the prototype. Stored only in this browser. Export them and send them to the product team."
           right={
             <Group gap={6}>
-              <Button variant="default" leftSection={<IconCopy size={14} />} disabled={!fb.length} onClick={() => navigator.clipboard.writeText(md()).then(() => notifications.show({ message: 'Copied as Markdown' }))}>
+              <Button variant="default" leftSection={<IconCopy size={14} />} disabled={!fb.length} onClick={() => navigator.clipboard.writeText(md()).then(() => notifications.show({ message: 'Copied as Markdown' })).catch(() => notifications.show({ color: 'red', message: 'Copy was blocked by the browser. Select the notes below and copy them manually.' }))}>
                 Copy
               </Button>
-              <Button
+              {!IS_SHARE && <Button
                 leftSection={<IconDownload size={14} />}
                 disabled={!fb.length}
                 onClick={() => {
@@ -43,11 +44,11 @@ export default function FeedbackPage() {
                 }}
               >
                 Export .md
-              </Button>
+              </Button>}
             </Group>
           }
         />
-        <Box style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+        <Box className="panel">
           {fb.length === 0 ? (
             <Empty title="No feedback yet" action={<Button onClick={() => setOpen(true)}>Add a note</Button>}>
               Use the Feedback button on any screen. The screen you were on is recorded with your note.
@@ -55,7 +56,7 @@ export default function FeedbackPage() {
           ) : (
             <Stack gap={0}>
               {fb.map((f) => (
-                <Group key={f.id} p="md" align="flex-start" wrap="nowrap" style={{ borderBottom: '1px solid #f5f5f4' }}>
+                <Group key={f.id} p="md" align="flex-start" wrap="nowrap" style={{ borderBottom: '1px solid #f1f4f9' }}>
                   <Box style={{ flex: 1 }}>
                     <Group gap={6} mb={4}>
                       <Text size="xs" ff="monospace" c="dimmed">

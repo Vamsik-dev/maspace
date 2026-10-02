@@ -20,7 +20,7 @@ export default function WorkstreamsPage() {
         description="Standard diligence workstreams from Playbook v4, created when the LOI was signed. Progress combines the initial request list with tracked work items."
       />
       {ws.length === 0 && (
-        <Box style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+        <Box className="panel">
           <Empty title="No workstreams yet">Workstreams are created automatically when the LOI is signed.</Empty>
         </Box>
       )}
@@ -29,7 +29,7 @@ export default function WorkstreamsPage() {
           const leads = acq.team.filter((m) => m.workstreams.includes(w.key));
           const f = s.findings.filter((x) => x.acqId === id && x.workstream === w.key && !['Dismissed', 'Resolved'].includes(x.status) && !x.positive);
           return (
-            <Box key={w.key} component={Link} href={`/acquisitions/${id}/workstreams/${w.key}`} p="md" className="row-link" style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8, display: 'block' }}>
+            <Box key={w.key} component={Link} href={`/acquisitions/${id}/workstreams/${w.key}`} p="md" className="panel card-link" style={{ display: 'block' }}>
               <Group justify="space-between" mb={2}>
                 <Text fw={600}>{w.label}</Text>
                 <Group gap={-4}>

@@ -19,7 +19,7 @@ export function UploadModal({ opened, onClose, acqId }: { opened: boolean; onClo
   return (
     <Modal opened={opened} onClose={onClose} title={<Text fw={600}>Upload documents</Text>} size="lg">
       <Stack gap="md">
-        <Box p="sm" style={{ background: '#fafaf9', border: '1px solid var(--app-border)', borderRadius: 6 }}>
+        <Box p="sm" style={{ background: '#f8fafc', border: '1px solid var(--app-border)', borderRadius: 6 }}>
           <Text className="label" mb={6}>
             Processing pipeline
           </Text>
@@ -63,7 +63,7 @@ export function UploadModal({ opened, onClose, acqId }: { opened: boolean; onClo
             })}
           </Stack>
         </Box>
-        <Box p="md" style={{ border: '1px dashed #d6d3d1', borderRadius: 8, textAlign: 'center' }}>
+        <Box p="md" style={{ border: '1px dashed #cbd3df', borderRadius: 8, textAlign: 'center' }}>
           <FileButton onChange={(f) => f && go(null, f.name)} accept=".pdf,.docx,.xlsx,.pptx,.csv">
             {(props) => (
               <Button {...props} variant="default" leftSection={<IconUpload size={14} />}>

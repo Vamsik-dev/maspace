@@ -9,7 +9,7 @@ import type { ClaimKind } from '@/lib/atlas';
 export default function AtlasPage() {
   const { id } = useParams<{ id: string }>();
   return (
-    <Stack gap="md" h="calc(100vh - 110px)">
+    <Stack gap="md" h="calc(100dvh - 300px)" mih={560}>
       <Group justify="space-between" align="flex-end">
         <Box>
           <Text className="label">Intelligence</Text>
@@ -29,7 +29,7 @@ export default function AtlasPage() {
           ))}
         </Stack>
       </Group>
-      <Box style={{ flex: 1, minHeight: 0, background: 'white', border: '1px solid var(--app-border)', borderRadius: 8, overflow: 'hidden' }}>
+      <Box className="panel" style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
         <Box maw={860} mx="auto" h="100%">
           <AtlasConversation acqId={id} />
         </Box>

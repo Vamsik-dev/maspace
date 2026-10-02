@@ -9,7 +9,13 @@ import { useStore } from '@/lib/store';
 export function Providers({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    Promise.resolve(useStore.persist.rehydrate()).finally(() => setReady(true));
+    try {
+      Promise.resolve(useStore.persist?.rehydrate())
+        .catch(() => undefined)
+        .finally(() => setReady(true));
+    } catch {
+      setReady(true);
+    }
   }, []);
   return (
     <MantineProvider theme={theme} defaultColorScheme="light" forceColorScheme="light">

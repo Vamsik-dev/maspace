@@ -117,7 +117,7 @@ export default function DecisionPage() {
                   const rec = d.recommendation?.optionId === o.id;
                   const chosen = d.outcome?.optionId === o.id;
                   return (
-                    <Box key={o.id} p="md" style={{ border: `1px solid ${chosen ? '#134a38' : rec ? '#d6d3d1' : 'var(--app-border)'}`, borderRadius: 8, background: chosen ? '#eef6f3' : 'white' }}>
+                    <Box key={o.id} p="md" style={{ border: `1px solid ${chosen ? '#1f45a5' : rec ? '#cbd3df' : 'var(--app-border)'}`, borderRadius: 8, background: chosen ? '#eef3ff' : 'white' }}>
                       <Group justify="space-between" mb={4}>
                         <Text fw={600} size="sm">
                           Option {idx + 1}: {o.label}

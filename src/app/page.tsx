@@ -18,8 +18,8 @@ function PhaseStrip({ phases }: { phases: Record<string, { status: string; progr
       {PHASES.map((p) => {
         const s = phases[p.key];
         return (
-          <Box key={p.key} title={`${p.short}: ${s.status}${s.status === 'active' ? ` ${s.progress}%` : ''}`} style={{ flex: 1, height: 5, borderRadius: 2, background: '#e7e5e4', overflow: 'hidden' }}>
-            <Box h="100%" w={`${s.status === 'complete' ? 100 : s.status === 'active' ? Math.max(s.progress, 8) : 0}%`} bg={s.status === 'complete' ? '#134a38' : '#4fa182'} />
+          <Box key={p.key} title={`${p.short}: ${s.status}${s.status === 'active' ? ` ${s.progress}%` : ''}`} style={{ flex: 1, height: 5, borderRadius: 2, background: '#e2e7ef', overflow: 'hidden' }}>
+            <Box h="100%" w={`${s.status === 'complete' ? 100 : s.status === 'active' ? Math.max(s.progress, 8) : 0}%`} bg={s.status === 'complete' ? '#1f45a5' : '#5579eb'} />
           </Box>
         );
       })}
@@ -49,8 +49,30 @@ export default function PortfolioPage() {
           right={<NewAcquisitionButton />}
         />
 
-        <Text className="label" mb={8}>
-          Active
+        <Box className="panel" mb={28} style={{ overflow: 'hidden' }}>
+          <SimpleGrid cols={{ base: 2, sm: 3, lg: 5 }} spacing={0}>
+            {[
+              ['Active acquisitions', String(active.length), `${active.filter((a) => a.currentPhase === 'diligence').length} in diligence`],
+              ['Pipeline EV', `$${active.reduce((t, a) => t + a.ev, 0).toFixed(1)}M`, `$${active.reduce((t, a) => t + a.target.revenue, 0).toFixed(1)}M target revenue`],
+              ['Decisions awaiting', String(decisions.filter((d) => d.status === 'Open' || d.status === 'Under Review').length), 'across active deals'],
+              ['High findings open', String(findings.filter((f) => (f.severity === 'High' || f.severity === 'Critical') && ['Open', 'Under Review', 'Proposed'].includes(f.status)).length), 'need review or a decision'],
+              ['Completed', String(PRIOR.length), `$${PRIOR.reduce((t, p) => t + p.ev, 0).toFixed(1)}M total EV since 2022`],
+            ].map(([k, v, sub], i) => (
+              <Box key={k} px="lg" py="md" style={{ borderLeft: i ? '1px solid var(--app-border-soft)' : undefined }}>
+                <Text className="label">{k}</Text>
+                <Text fz={26} fw={600} className="num" lh={1.25} mt={4} style={{ letterSpacing: '-0.02em' }}>
+                  {v}
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {sub}
+                </Text>
+              </Box>
+            ))}
+          </SimpleGrid>
+        </Box>
+
+        <Text className="label" mb={10}>
+          Active pipeline
         </Text>
         <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md" mb={32}>
           {active.map((a) => {
@@ -60,7 +82,7 @@ export default function PortfolioPage() {
             const att = work.filter((x) => x.acqId === a.id && x.status !== 'Complete' && ((x.due && x.due < DEMO_TODAY) || x.status === 'Blocked')).length;
             const next = milestones.filter((m) => m.acqId === a.id && m.date >= DEMO_TODAY).sort((x, y) => x.date.localeCompare(y.date))[0];
             return (
-              <Box key={a.id} component={Link} href={`/acquisitions/${a.id}`} p="md" style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8, display: 'block' }} className="row-link">
+              <Box key={a.id} component={Link} href={`/acquisitions/${a.id}`} p="lg" className="panel card-link" style={{ display: 'block' }}>
                 <Group justify="space-between" align="flex-start" mb={4}>
                   <Box>
                     <Text fw={600} size="md">

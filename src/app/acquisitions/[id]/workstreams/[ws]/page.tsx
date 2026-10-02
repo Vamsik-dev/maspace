@@ -65,7 +65,7 @@ export default function WorkstreamPage() {
                 <Stack gap={0}>
                   {findings.map((f) => (
                     <Link key={f.id} href={`${base}/findings/${f.id}`}>
-                    <Group px="md" py={8} className="row-link" justify="space-between" wrap="nowrap" style={{ borderBottom: '1px solid #f5f5f4' }}>
+                    <Group px="md" py={8} className="row-link" justify="space-between" wrap="nowrap" style={{ borderBottom: '1px solid #f1f4f9' }}>
                       <Group gap={8} wrap="nowrap">
                         <SeverityBadge severity={f.severity} positive={f.positive} />
                         <Text size="sm">{f.title}</Text>

@@ -10,7 +10,7 @@ import { notifications } from '@mantine/notifications';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '@/lib/store';
 import { generate } from '@/lib/generate';
-import { DEMO_TODAY } from '@/lib/meta';
+import { DEMO_TODAY, IS_SHARE } from '@/lib/meta';
 import { fmtDate } from '@/lib/atlas';
 import { Empty, Person, StatusBadge, personName } from '@/components/ui';
 import type { Deliverable } from '@/lib/types';
@@ -71,9 +71,11 @@ export default function DeliverablePage() {
           <Button variant="default" leftSection={<IconRefresh size={14} />} onClick={() => (d.content ? setConfirm(true) : setVersion((v) => v + 1))}>
             Regenerate from deal data
           </Button>
-          <Button variant="default" leftSection={<IconPrinter size={14} />} onClick={() => window.print()}>
-            Print / PDF
-          </Button>
+          {!IS_SHARE && (
+            <Button variant="default" leftSection={<IconPrinter size={14} />} onClick={() => window.print()}>
+              Print / PDF
+            </Button>
+          )}
           <Menu position="bottom-end">
             <Menu.Target>
               <Button rightSection={<IconChevronDown size={13} />}>Status: {d.status}</Button>
@@ -102,7 +104,7 @@ export default function DeliverablePage() {
         </Text>
       </Alert>
 
-      <Box py="lg" style={{ background: 'white', border: '1px solid var(--app-border)', borderRadius: 8 }}>
+      <Box py="lg" className="panel">
         <Box maw={860} mx="auto">
           <DocEditor
             key={`${d.id}-${version}`}

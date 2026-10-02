@@ -138,7 +138,7 @@ function Valuation({ acq, s }: { acq: Acquisition; s: S }) {
                       top: 2,
                       bottom: 2,
                       borderRadius: 2,
-                      background: l.kind === 'adjustment' ? '#f97316' : l.kind === 'total' ? '#134a38' : '#a8a29e',
+                      background: l.kind === 'adjustment' ? '#f97316' : l.kind === 'total' ? '#1f45a5' : '#94a3b8',
                     }}
                   />
                 </Box>
@@ -183,7 +183,7 @@ function Valuation({ acq, s }: { acq: Acquisition; s: S }) {
               <Table.Td ta="right">$20.0M + $1.5M</Table.Td>
               <Table.Td>Earn-out on top-5 retention</Table.Td>
             </Table.Tr>
-            <Table.Tr bg="#fafaf9">
+            <Table.Tr bg="#f8fafc">
               <Table.Td fw={600}>Working view</Table.Td>
               <Table.Td />
               <Table.Td ta="right">{(acq.ev / acq.target.ebitda).toFixed(2)}x</Table.Td>
@@ -332,7 +332,7 @@ function Checklist({ title, items }: { title: string; items: { label: string; do
       <Stack gap={6}>
         {items.map((i) => (
           <Group key={i.label} gap={8} wrap="nowrap" align="flex-start">
-            <Box mt={2} w={16} h={16} style={{ borderRadius: 4, border: i.done ? 'none' : '1.5px solid #d6d3d1', background: i.done ? '#134a38' : undefined, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+            <Box mt={2} w={16} h={16} style={{ borderRadius: 4, border: i.done ? 'none' : '1.5px solid #cbd3df', background: i.done ? '#1f45a5' : undefined, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
               {i.done && <IconCheck size={11} color="white" stroke={3} />}
             </Box>
             <Box>

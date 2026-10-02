@@ -85,7 +85,7 @@ function AnswerView({ a, acqId, onAsk, onNavigate }: { a: AtlasAnswer; acqId: st
   return (
     <Stack gap={10}>
       <Group justify="flex-end">
-        <Box px={12} py={7} style={{ background: '#f5f5f4', borderRadius: 10, maxWidth: '85%' }}>
+        <Box px={12} py={7} style={{ background: '#f1f4f9', borderRadius: 10, maxWidth: '85%' }}>
           <Text size="sm">{a.question}</Text>
         </Box>
       </Group>
@@ -190,7 +190,7 @@ export function AtlasConversation({ acqId, onNavigate, autoPrompt }: { acqId: st
           {thinking && (
             <Stack gap={8}>
               <Group justify="flex-end">
-                <Box px={12} py={7} style={{ background: '#f5f5f4', borderRadius: 10 }}>
+                <Box px={12} py={7} style={{ background: '#f1f4f9', borderRadius: 10 }}>
                   <Text size="sm">{thinking}</Text>
                 </Box>
               </Group>
