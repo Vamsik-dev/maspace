@@ -4,14 +4,14 @@ import { Button, Group, Modal, MultiSelect, Select, Stack, Text, TextInput, Text
 import { IconPlus, IconX } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useEffect, useState } from 'react';
-import { PEOPLE } from '@/data/people';
-import { PHASES, WORKSTREAMS } from '@/lib/meta';
+import { PHASES } from '@/lib/meta';
+import { useOrgPeople, useWorkstreams } from '@/lib/hooks';
+import type { Person } from '@/lib/types';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '@/lib/store';
 import type { PhaseKey, Severity, WorkstreamKey, WorkItem } from '@/lib/types';
 
-const peopleData = PEOPLE.map((p) => ({ value: p.id, label: `${p.name} — ${p.function}${p.firm ? ` (${p.firm})` : ''}` }));
-const wsData = WORKSTREAMS.map((w) => ({ value: w.key, label: w.label }));
+const toPeopleData = (ps: Person[]) => ps.map((p) => ({ value: p.id, label: `${p.name} — ${p.function}${p.firm ? ` (${p.firm})` : ''}` }));
 const phaseData = PHASES.map((p) => ({ value: p.key, label: `${p.n}. ${p.short}` }));
 
 export function NewWorkItemModal({
@@ -28,12 +28,15 @@ export function NewWorkItemModal({
   onCreated?: (id: string) => void;
 }) {
   const add = useStore((s) => s.addWork);
+  const wsData = useWorkstreams(acqId).map((w) => ({ value: w.key, label: w.label }));
+  const people = useOrgPeople();
+  const peopleData = toPeopleData(people);
   const me = useStore((s) => s.currentUserId);
   const init = () => ({
     title: defaults?.title ?? '',
     description: defaults?.description ?? '',
     kind: defaults?.kind ?? ('Task' as WorkItem['kind']),
-    workstream: defaults?.workstream ?? ('financial' as WorkstreamKey),
+    workstream: defaults?.workstream ?? (wsData[0]?.value as WorkstreamKey),
     phase: defaults?.phase ?? ('diligence' as PhaseKey),
     ownerId: defaults?.ownerId ?? me,
     reviewerId: defaults?.reviewerId ?? '',
@@ -89,7 +92,7 @@ export function NewWorkItemModal({
               });
               onCreated?.(id);
               onClose();
-              notifications.show({ message: `Assigned to ${PEOPLE.find((p) => p.id === v.ownerId)?.name}. They'll be notified.`, color: 'ink' });
+              notifications.show({ message: `Assigned to ${people.find((p) => p.id === v.ownerId)?.name}. They'll be notified.`, color: 'ink' });
             }}
           >
             Create
@@ -114,12 +117,14 @@ export function NewDecisionModal({
   onCreated?: (id: string) => void;
 }) {
   const add = useStore((s) => s.addDecision);
+  const people = useOrgPeople();
+  const peopleData = toPeopleData(people);
   const init = () => ({
     question: defaults?.question ?? '',
     context: defaults?.context ?? '',
     options: defaults?.options?.length ? defaults.options : ['', ''],
-    approverId: 'p-dan',
-    reviewerIds: ['p-priya'] as string[],
+    approverId: people.find((p) => p.function === 'CEO')?.id ?? people[0].id,
+    reviewerIds: [people.find((p) => p.function === 'CFO')?.id ?? people[0].id] as string[],
     due: '2026-10-14',
     phase: defaults?.phase ?? ('diligence' as PhaseKey),
   });
@@ -197,7 +202,9 @@ export function NewDecisionModal({
 
 export function NewRiskModal({ opened, onClose, findingId, defaults }: { opened: boolean; onClose: () => void; findingId: string; defaults?: { title?: string; description?: string; severity?: Severity; ownerId?: string } }) {
   const add = useStore((s) => s.addRiskFromFinding);
-  const init = () => ({ title: defaults?.title ?? '', description: defaults?.description ?? '', severity: defaults?.severity ?? ('Medium' as Severity), probability: 'Possible' as const, ownerId: defaults?.ownerId ?? 'p-priya', mitigation: '' });
+  const people = useOrgPeople();
+  const peopleData = toPeopleData(people);
+  const init = () => ({ title: defaults?.title ?? '', description: defaults?.description ?? '', severity: defaults?.severity ?? ('Medium' as Severity), probability: 'Possible' as const, ownerId: defaults?.ownerId ?? people[0].id, mitigation: '' });
   const [v, setV] = useState(init);
   useEffect(() => {
     if (opened) setV(init());
@@ -240,9 +247,12 @@ export function NewRiskModal({ opened, onClose, findingId, defaults }: { opened:
 
 export function NewFindingModal({ opened, onClose, acqId, onCreated }: { opened: boolean; onClose: () => void; acqId: string; onCreated?: (id: string) => void }) {
   const add = useStore((s) => s.addFinding);
+  const wsData = useWorkstreams(acqId).map((w) => ({ value: w.key, label: w.label }));
+  const people = useOrgPeople();
+  const peopleData = toPeopleData(people);
   const docs = useStore(useShallow((s) => s.documents.filter((d) => d.acqId === acqId)));
   const me = useStore((s) => s.currentUserId);
-  const init = () => ({ title: '', fact: '', workstream: 'financial' as WorkstreamKey, severity: 'Medium' as Severity, docId: '', page: '', interpretation: '', ownerId: me });
+  const init = () => ({ title: '', fact: '', workstream: wsData[0]?.value as WorkstreamKey, severity: 'Medium' as Severity, docId: '', page: '', interpretation: '', ownerId: me });
   const [v, setV] = useState(init);
   useEffect(() => {
     if (opened) setV(init());

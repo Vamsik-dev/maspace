@@ -17,6 +17,9 @@ import type {
   ResearchItem,
   SellerClaim,
   Citation,
+  Playbook,
+  PriorAcquisition,
+  CriterionTest,
   PhaseKey,
   Risk,
   WorkItem,
@@ -37,8 +40,12 @@ import {
 import { DEMO_TODAY } from './meta';
 import { UPLOAD_CATALOG } from '@/data/uploads';
 import { ABC_CLAIMS, ABC_PROPOSALS, ABC_RESEARCH } from '@/data/abc-intel';
-import { LS_CLAIMS, LS_DISCOVERIES, LS_DOCS, LS_GAPS, LS_METRICS, LS_RESEARCH } from '@/data/lonestar';
-import { CRITERIA, similarDeals } from './playbook';
+import { SAMPLES } from '@/data/samples';
+import { ORGS, PLAYBOOKS } from '@/data/playbooks';
+import { BROOKFIELD, HALCYON_PRIOR } from '@/data/healthcare';
+import { ARCHIVES } from '@/data/archive';
+import { PEOPLE } from '@/data/people';
+import { assumptionsFrom, evaluate, similarDeals, statusFor } from './playbook';
 import { PRIOR } from '@/data/portfolio';
 
 // The store stands in for the future API. Every action here maps to an
@@ -72,6 +79,10 @@ interface State {
   /** Atlas-drafted follow-ups that are released when a finding is accepted. */
   chains: Record<string, ChainTpl[]>;
   runs: Record<string, AnalysisRun>;
+  currentOrgId: string;
+  playbooks: Playbook[];
+  priors: PriorAcquisition[];
+  archive: Record<string, { status: 'idle' | 'running' | 'review'; log: string[]; pending: string[]; confirmed: string[] }>;
   seq: number;
 }
 
@@ -89,6 +100,10 @@ interface Actions {
   setCurrentUser: (id: string) => void;
   addAcquisition: (a: { name: string; industry: string; hq: string; revenue: number; ebitda: number; strategy: string; thesis: string; rationale?: string }) => string;
   runAnalysis: (acqId: string) => void;
+  setOrg: (orgId: string) => void;
+  updateCriterion: (playbookId: string, key: string, test: CriterionTest) => void;
+  importArchive: (orgId: string) => void;
+  confirmArchived: (dealId: string, accept: boolean) => void;
   acceptProposal: (id: string) => void;
   dismissProposal: (id: string) => void;
   acceptChain: (findingId: string) => void;
@@ -119,7 +134,7 @@ interface Actions {
 
 const seed = (): State => ({
   currentUserId: 'p-marcus',
-  acquisitions: [ABC, COASTAL, DELTA],
+  acquisitions: [ABC, COASTAL, DELTA, BROOKFIELD],
   work: [...ABC_WORK, ...SECONDARY_WORK],
   findings: [...ABC_FINDINGS, ...SECONDARY_FINDINGS],
   risks: [...ABC_RISKS, ...SECONDARY_RISKS],
@@ -136,6 +151,10 @@ const seed = (): State => ({
   claims: ABC_CLAIMS,
   chains: {},
   runs: {},
+  currentOrgId: 'org-meridian',
+  playbooks: PLAYBOOKS,
+  priors: [...PRIOR, ...HALCYON_PRIOR],
+  archive: {},
   seq: 1,
 });
 
@@ -184,9 +203,14 @@ export const useStore = create<State & Actions>()(
         addAcquisition: (x) => {
           const id = nextId('acq');
           const me = get().currentUserId;
+          const org = ORGS.find((o) => o.id === get().currentOrgId)!;
+          const pb = get().playbooks.find((p) => p.id === org.playbookId)!;
           const empty = { status: 'upcoming' as const, progress: 0, summary: '' };
+          const [ws1, ws2] = pb.workstreams.map((w) => w.key);
           const acq: Acquisition = {
             id,
+            orgId: org.id,
+            playbookId: pb.id,
             codename: `Project ${x.name.split(' ')[0]}`,
             name: x.name,
             status: 'Active',
@@ -197,35 +221,64 @@ export const useStore = create<State & Actions>()(
             strategy: x.strategy,
             rationale: x.rationale,
             ev: Math.round(x.ebitda * 6 * 10) / 10,
-            evBasis: 'Placeholder: 6.0x seller EBITDA until valuation is built',
-            thesis: {
-              summary: x.thesis,
-              pillars: [],
-              assumptions: [
-                { id: 'a1', label: 'Top-5 customer concentration', expected: '< 25% of revenue', status: 'Untested' },
-                { id: 'a2', label: 'Recurring service revenue', expected: '≥ 25% of revenue', status: 'Untested' },
-                { id: 'a3', label: 'Owner transition', expected: 'Within 12 months', status: 'Untested' },
-                { id: 'a4', label: 'Technician retention', expected: '≥ 80%', status: 'Untested' },
-              ],
-            },
+            evBasis: 'Placeholder until valuation is built',
+            thesis: { summary: x.thesis, pillars: [], assumptions: assumptionsFrom(pb) },
             phases: {
               strategy: { status: 'active', progress: 5, summary: 'Screening started.' },
               valuation: empty, loi: empty, diligence: empty, agreement: empty, financing: empty, closing: empty, integration: empty,
             },
-            team: [{ personId: me, dealRole: 'Owner', workstreams: ['commercial', 'financial'] }],
+            team: [{ personId: me, dealRole: 'Owner', workstreams: [ws1, ws2] }],
           };
           set((s) => ({ acquisitions: [...s.acquisitions, acq] }));
-          log({ acqId: id, actor: me, kind: 'phase', text: `created the acquisition and started Strategy & Target Screening` });
-          // Playbook: standard screening checklist.
+          log({ acqId: id, actor: me, kind: 'phase', text: `created the acquisition under ${pb.name} ${pb.version} and started Strategy & Target Screening` });
           [
-            ['Screen target against playbook thresholds', 'commercial'],
-            ['Request CIM / teaser and 3-year financials', 'financial'],
-            ['Intro call with owner', 'commercial'],
-            ['Draft target brief', 'commercial'],
+            ['Screen target against playbook thresholds', ws1],
+            ['Request CIM and 3-year financials', ws2],
+            ['Intro call with owners', ws1],
           ].forEach(([title, ws]) =>
-            get().addWork({ acqId: id, title, kind: 'Task', workstream: ws as WorkItem['workstream'], phase: 'strategy', status: 'Not Started', priority: 'Normal', ownerId: me, due: '2026-10-16', createdBy: 'automation' }),
+            get().addWork({ acqId: id, title, kind: 'Task', workstream: ws, phase: 'strategy', status: 'Not Started', priority: 'Normal', ownerId: me, due: '2026-10-16', createdBy: 'automation' }),
           );
           return id;
+        },
+
+        setOrg: (orgId) => {
+          const first = PEOPLE.find((p) => p.orgId === orgId && p.org === 'Internal');
+          set({ currentOrgId: orgId, currentUserId: first?.id ?? get().currentUserId });
+        },
+
+        updateCriterion: (playbookId, key, test) => {
+          const pb = get().playbooks.find((p) => p.id === playbookId);
+          set((s) => ({ playbooks: s.playbooks.map((p) => (p.id === playbookId ? { ...p, criteria: p.criteria.map((c) => (c.key === key ? { ...c, test } : c)) } : p)) }));
+          const acq = get().acquisitions.find((a) => a.playbookId === playbookId);
+          if (pb && acq) log({ acqId: acq.id, actor: get().currentUserId, kind: 'phase', text: `changed ${pb.name} threshold for "${pb.criteria.find((c) => c.key === key)?.label}"` });
+        },
+
+        importArchive: (orgId) => {
+          const arc = ARCHIVES[orgId];
+          if (!arc) return;
+          const put = (patch: Partial<State['archive'][string]>) =>
+            set((s) => ({ archive: { ...s.archive, [orgId]: { ...{ status: 'running' as const, log: [] as string[], pending: [] as string[], confirmed: [] as string[] }, ...s.archive[orgId], ...patch } } }));
+          put({ status: 'running', log: [`Connected to ${arc.source}. Found ${arc.folders} deal folders, ${arc.documents} documents.`], pending: [] });
+          arc.deals.forEach((d, i) => {
+            setTimeout(() => {
+              const cur = get().archive[orgId];
+              put({ log: [...cur.log, `Reconstructed ${d.record.name} (${d.record.closed}) from ${d.fromDocs.length} documents — ${d.record.confidence?.toLowerCase()} confidence${d.missing.length ? `; missing: ${d.missing.join(', ').toLowerCase()}` : ''}.`], pending: [...cur.pending, d.record.id] });
+            }, 900 * (i + 1));
+          });
+          setTimeout(() => {
+            const cur = get().archive[orgId];
+            put({ status: 'review', log: [...cur.log, `Done. ${arc.deals.length} acquisitions ready for your confirmation before they enter memory.`] });
+          }, 900 * (arc.deals.length + 1));
+        },
+
+        confirmArchived: (dealId, accept) => {
+          const org = get().currentOrgId;
+          const d = ARCHIVES[org]?.deals.find((x) => x.record.id === dealId);
+          if (!d) return;
+          set((s) => ({
+            priors: accept && !s.priors.some((p) => p.id === dealId) ? [...s.priors, d.record] : s.priors,
+            archive: { ...s.archive, [org]: { ...s.archive[org], pending: s.archive[org].pending.filter((x) => x !== dealId), confirmed: accept ? [...s.archive[org].confirmed, dealId] : s.archive[org].confirmed } },
+          }));
         },
 
         updateWork: (id, patch) => {
@@ -387,6 +440,10 @@ export const useStore = create<State & Actions>()(
 
         runAnalysis: (acqId) => {
           const me = get().currentUserId;
+          const acq0 = get().acquisitions.find((a) => a.id === acqId)!;
+          const SAMPLE = SAMPLES[acq0.orgId];
+          if (!SAMPLE) return;
+          const { docs: LS_DOCS, discoveries: LS_DISCOVERIES, metrics: LS_METRICS, gaps: LS_GAPS, research: LS_RESEARCH, claims: LS_CLAIMS } = SAMPLE;
           const docId = (key: string) => `${acqId}-${key}`;
           const remap = (cs: Citation[]) => cs.map((c) => ({ ...c, docId: docId(c.docId) }));
           const stamp = () => new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -426,32 +483,37 @@ export const useStore = create<State & Actions>()(
           const end = LS_DOCS.length * STEP + 900;
           setTimeout(() => {
             const metrics = { ...LS_METRICS, sources: Object.fromEntries(Object.entries(LS_METRICS.sources ?? {}).map(([k, v]) => [k, remap(v as Citation[])])) };
+            const pb = get().playbooks.find((p) => p.id === acq0.playbookId)!;
             set((s) => ({
               acquisitions: s.acquisitions.map((a) =>
                 a.id === acqId
                   ? {
                       ...a,
+                      ...SAMPLE.enrich,
+                      target: { ...a.target, ...(SAMPLE.enrich.target ?? {}) },
                       metrics,
-                      target: { ...a.target, ebitdaBasis: 'Seller adjusted FY2025 (unverified)', employees: 96, branches: ['San Antonio (HQ)', 'New Braunfels'], ownership: 'Founder-owned (Ray J. Morales)', founded: 2006, description: 'Commercial HVAC service provider in San Antonio and New Braunfels with a preventive-maintenance program and a medical / hospitality customer mix.' },
-                      ev: 16.1,
-                      evBasis: 'Seller ask: 7.0x $2.30M adj. EBITDA (after excluding recurring callbacks)',
                       thesis: {
                         ...a.thesis,
-                        assumptions: a.thesis.assumptions.map((x) =>
-                          x.id === 'a1' ? { ...x, current: '29.7%', status: 'Contradicted' } : x.id === 'a2' ? { ...x, current: '22.1%', status: 'At risk' } : x.id === 'a3' ? { ...x, current: 'Founder holds both licenses', status: 'At risk' } : x.id === 'a4' ? { ...x, current: '69.0%', status: 'Contradicted' } : x,
-                        ),
+                        assumptions: a.thesis.assumptions.map((x) => {
+                          const c = pb.criteria.find((c) => c.key === x.id);
+                          const v = metrics.values[x.id];
+                          const r = c ? evaluate(c, v) : null;
+                          return r && c ? { ...x, current: typeof v === 'number' ? (c.unit === '%' ? `${v.toFixed(1)}%` : String(v)) : String(v), status: statusFor(r) } : x;
+                        }),
                       },
                       phases: { ...a.phases, strategy: { ...a.phases.strategy, progress: 60, summary: 'Data room analyzed by Atlas. Screening decision pending.' } },
                     }
                   : a,
               ),
             }));
-            const fails = CRITERIA.filter((c) => c.test(metrics) === 'Fail').length;
-            const watch = CRITERIA.filter((c) => c.test(metrics) === 'Watch').length;
-            push(`Scored against Playbook v4: ${CRITERIA.length - fails - watch} pass, ${watch} watch, ${fails} fail.`, 'check');
+            const results = pb.criteria.map((c) => evaluate(c, metrics.values[c.key])).filter(Boolean);
+            const fails = results.filter((r) => r === 'Fail').length;
+            const watch = results.filter((r) => r === 'Watch').length;
+            push(`Scored against ${pb.name} ${pb.version}: ${results.length - fails - watch} pass, ${watch} watch, ${fails} fail.`, 'check');
             const acq = get().acquisitions.find((a) => a.id === acqId)!;
-            const sim = similarDeals(acq);
-            push(`Compared with ${PRIOR.length} prior acquisitions: ${sim.map((x) => `${x.deal.name} (${x.reasons.join(', ')})`).join('; ')}.`, 'memory');
+            const priors = get().priors.filter((p) => p.orgId === acq.orgId);
+            const sim = similarDeals(acq, pb, priors);
+            push(`Compared with ${priors.length} prior acquisitions: ${sim.length ? sim.map((x) => `${x.deal.name} (${x.reasons.join(', ')})`).join('; ') : 'no close matches'}.`, 'memory');
           }, end);
           setTimeout(() => {
             set((s) => ({
@@ -462,7 +524,7 @@ export const useStore = create<State & Actions>()(
                   kind: 'request' as const,
                   title: `Request: ${g.title}`,
                   summary: g.why,
-                  basis: 'Expected for this stage by Playbook v4; not found in the data room.',
+                  basis: 'Expected for this stage by the playbook request list; not found in the data room.',
                   confidence: 'High' as const,
                   createdAt: DEMO_TODAY,
                   status: 'Pending' as const,
@@ -578,7 +640,7 @@ export const useStore = create<State & Actions>()(
           if (id === 'dec-price' && optionId === 'o3') {
             set((s) => ({
               acquisitions: s.acquisitions.map((a) =>
-                a.id === d.acqId ? { ...a, ev: 20.0, evBasis: '$20.0M at close (6.25x QoE EBITDA) + up to $1.5M earn-out on top-5 retention', metrics: a.metrics ? { ...a.metrics, askMultiple: 6.25 } : a.metrics } : a,
+                a.id === d.acqId ? { ...a, ev: 20.0, evBasis: '$20.0M at close (6.25x QoE EBITDA) + up to $1.5M earn-out on top-5 retention', metrics: a.metrics ? { ...a.metrics, values: { ...a.metrics.values, askMultiple: 6.25 } } : a.metrics } : a,
               ),
               findings: s.findings.map((f) => (f.id === 'f-qoe' ? { ...f, status: 'Resolved' } : f.id === 'f-conc' ? { ...f, status: 'Confirmed' } : f)),
             }));
@@ -702,7 +764,7 @@ export const useStore = create<State & Actions>()(
       };
     },
     {
-      name: 'maspace-prototype-v2',
+      name: 'maspace-prototype-v3',
       storage: createJSONStorage(() => localStorage),
       // Analysis runs are timer-driven; never restore one mid-flight.
       partialize: (s) => {

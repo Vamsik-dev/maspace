@@ -5,6 +5,8 @@ const A = 'acq-abc';
 
 export const ABC: Acquisition = {
   id: A,
+  orgId: 'org-meridian',
+  playbookId: 'pb-mech',
   codename: 'Project Bluebird',
   name: 'ABC Mechanical',
   status: 'Active',
@@ -28,13 +30,7 @@ export const ABC: Acquisition = {
   },
   rationale: 'Expand Austin service footprint and add a commercial maintenance base for fire/life-safety cross-sell.',
   metrics: {
-    revenue: 18.2,
-    recurringPct: 31.0,
-    top5Pct: 38.4,
-    techRetentionPct: 71.8,
-    ownerDependency: 'High',
-    askMultiple: 6.88,
-    grossMarginPct: 37.5,
+    values: { revenue: 18.2, recurringPct: 31.0, top5Pct: 38.4, techRetentionPct: 71.8, ownerDependency: 'High', askMultiple: 6.88, grossMarginPct: 37.5 },
     sources: {
       recurringPct: [{ docId: 'd-cust', page: 2 }],
       top5Pct: [{ docId: 'd-cust', page: 1 }, { docId: 'd-qoe', page: 17 }],

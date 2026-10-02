@@ -2,8 +2,8 @@
 
 import { Anchor, Box, Drawer, Group, Select, SimpleGrid, Stack, Text, Badge } from '@mantine/core';
 import Link from 'next/link';
-import { PEOPLE } from '@/data/people';
-import { PHASES, WORKSTREAMS, DEMO_TODAY } from '@/lib/meta';
+import { PHASES, DEMO_TODAY, wsLabel } from '@/lib/meta';
+import { useOrgPeople } from '@/lib/hooks';
 import { useStore } from '@/lib/store';
 import type { WorkItemStatus } from '@/lib/types';
 import { Comments } from './Comments';
@@ -18,6 +18,7 @@ export function WorkItemDrawer({ itemId, onClose }: { itemId: string | null; onC
   const findings = useStore((s) => s.findings);
   const decisions = useStore((s) => s.decisions);
   const update = useStore((s) => s.updateWork);
+  const PEOPLE = useOrgPeople();
   return (
     <Drawer opened={!!w} onClose={onClose} position="right" size={540} title={<Text fw={600}>{w?.kind ?? 'Work item'}</Text>}>
       {w && (
@@ -38,7 +39,7 @@ export function WorkItemDrawer({ itemId, onClose }: { itemId: string | null; onC
             <Select size="xs" label="Priority" data={['Urgent', 'High', 'Normal', 'Low']} value={w.priority} onChange={(v) => v && update(w.id, { priority: v as never })} />
             <Select size="xs" label="Owner" searchable data={PEOPLE.map((p) => ({ value: p.id, label: p.name }))} value={w.ownerId} onChange={(v) => v && update(w.id, { ownerId: v })} />
             <Select size="xs" label="Reviewer" clearable data={PEOPLE.map((p) => ({ value: p.id, label: p.name }))} value={w.reviewerId ?? null} onChange={(v) => update(w.id, { reviewerId: v ?? undefined })} />
-            <Field label="Workstream">{WORKSTREAMS.find((x) => x.key === w.workstream)?.label}</Field>
+            <Field label="Workstream">{wsLabel(w.workstream)}</Field>
             <Field label="Phase">{PHASES.find((x) => x.key === w.phase)?.label}</Field>
             <Field label="Due">
               <Text size="sm" c={w.due && w.due < DEMO_TODAY && w.status !== 'Complete' ? 'red.7' : undefined}>

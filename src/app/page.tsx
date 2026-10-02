@@ -7,8 +7,8 @@ import { TopBar } from '@/components/Chrome';
 import { PageHeader, Section, PersonAvatar, SyntheticBadge } from '@/components/ui';
 import { useStore } from '@/lib/store';
 import { PHASES, DEMO_TODAY, fmtM, phaseLabel } from '@/lib/meta';
-import { PRIOR } from '@/data/portfolio';
-import { ACQUIRER } from '@/data/people';
+import { useOrg, usePriors, useOrgPlaybook } from '@/lib/hooks';
+import { similarDeals } from '@/lib/playbook';
 import { fmtDate } from '@/lib/atlas';
 
 function PhaseStrip({ phases }: { phases: Record<string, { status: string; progress: number }> }) {
@@ -27,7 +27,11 @@ function PhaseStrip({ phases }: { phases: Record<string, { status: string; progr
 }
 
 export default function PortfolioPage() {
-  const acqs = useStore((s) => s.acquisitions);
+  const org = useOrg();
+  const ACQUIRER = org;
+  const PRIOR = usePriors(org.id);
+  const pb = useOrgPlaybook();
+  const acqs = useStore((s) => s.acquisitions).filter((a) => a.orgId === org.id);
   const findings = useStore((s) => s.findings);
   const decisions = useStore((s) => s.decisions);
   const work = useStore((s) => s.work);
@@ -55,7 +59,7 @@ export default function PortfolioPage() {
               ['Pipeline EV', `$${active.reduce((t, a) => t + a.ev, 0).toFixed(1)}M`, `$${active.reduce((t, a) => t + a.target.revenue, 0).toFixed(1)}M target revenue`],
               ['Decisions awaiting', String(decisions.filter((d) => d.status === 'Open' || d.status === 'Under Review').length), 'across active deals'],
               ['High findings open', String(findings.filter((f) => (f.severity === 'High' || f.severity === 'Critical') && ['Open', 'Under Review', 'Proposed'].includes(f.status)).length), 'need review or a decision'],
-              ['Completed', String(PRIOR.length), `$${PRIOR.reduce((t, p) => t + p.ev, 0).toFixed(1)}M total EV since 2022`],
+              ['Completed', String(PRIOR.length), `$${PRIOR.reduce((t, p) => t + p.ev, 0).toFixed(1)}M total EV`],
             ].map(([k, v, sub], i) => (
               <Box key={k} px="lg" py="md" style={{ borderLeft: i ? '1px solid var(--app-border-soft)' : undefined }}>
                 <Text className="label">{k}</Text>
@@ -194,10 +198,17 @@ export default function PortfolioPage() {
           <Section title="Across the portfolio">
             <Stack gap="sm">
               <Text size="sm">
-                <b>Recurring pattern:</b> customer concentration or founder licensing issues appeared in 2 of 5 completed deals and in the current ABC Mechanical diligence.
+                <b>Recurring patterns:</b>{' '}
+                {(() => {
+                  const hits = active.flatMap((a) => similarDeals(a, pb, PRIOR).flatMap((x) => x.reasons.map((r) => ({ r, deal: x.deal.name, now: a.name }))));
+                  const byReason = Array.from(new Set(hits.map((h) => h.r)));
+                  return byReason.length
+                    ? byReason.slice(0, 3).map((r) => `${r} (seen at ${Array.from(new Set(hits.filter((h) => h.r === r).map((h) => h.deal))).join(', ')}; now at ${Array.from(new Set(hits.filter((h) => h.r === r).map((h) => h.now))).join(', ')})`).join('; ') + '.'
+                    : 'none detected yet in active deals.';
+                })()}
               </Text>
               <Text size="sm">
-                <b>Playbook:</b> {inPlaybook} of {allLessons.length} lessons from completed deals are in Playbook v4; {allLessons.length - inPlaybook} awaiting adoption.
+                <b>Playbook:</b> {inPlaybook} of {allLessons.length} lessons from completed deals are in {pb.name} {pb.version}; {allLessons.length - inPlaybook} awaiting adoption.
               </Text>
               <Group>
                 <Button component={Link} href="/memory" variant="light" rightSection={<IconArrowRight size={13} />}>
@@ -207,7 +218,7 @@ export default function PortfolioPage() {
               <Group gap={6} mt="sm">
                 <SyntheticBadge />
                 <Text size="xs" c="dimmed">
-                  Meridian Field Services and all deals are fictional.
+                  {org.name} and all deals are fictional.
                 </Text>
               </Group>
             </Stack>

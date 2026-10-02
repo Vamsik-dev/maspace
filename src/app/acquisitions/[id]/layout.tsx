@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, Group, ScrollArea, Text, Tooltip } from '@mantine/core';
+import { Box, Button, Group, ScrollArea, Text, Tooltip } from '@mantine/core';
+import { ORGS } from '@/data/playbooks';
 import { IconChevronRight } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
@@ -30,12 +31,32 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
   const { id } = useParams<{ id: string }>();
   const path = usePathname();
   const acq = useStore((s) => s.acquisitions.find((a) => a.id === id));
+  const orgId = useStore((s) => s.currentOrgId);
+  const setOrg = useStore((s) => s.setOrg);
 
   if (!acq)
     return (
       <>
         <TopBar />
         <Empty title="Acquisition not found" action={<Link href="/">Back to portfolio</Link>} />
+      </>
+    );
+
+  if (acq.orgId !== orgId)
+    return (
+      <>
+        <TopBar />
+        <Box maw={560} mx="auto" mt={80} p="xl" className="panel">
+          <Text fw={600} fz={18} mb={6}>
+            This acquisition belongs to another organization
+          </Text>
+          <Text size="sm" c="dimmed" mb="md">
+            Each customer is a separate tenant. Deals, documents, people and acquisition memory are never visible across organizations, and Atlas never retrieves from another tenant.
+          </Text>
+          <Button variant="default" onClick={() => setOrg(acq.orgId)}>
+            Prototype only: switch to {ORGS.find((o) => o.id === acq.orgId)?.name}
+          </Button>
+        </Box>
       </>
     );
 

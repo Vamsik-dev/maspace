@@ -1,4 +1,5 @@
-import type { DealDocument, Proposal, ResearchItem, SellerClaim, TargetMetrics } from '@/lib/types';
+import type { ResearchItem, SellerClaim, TargetMetrics } from '@/lib/types';
+import type { Discovery, DocTpl } from './samples';
 
 // SYNTHETIC DEMO DATA. "Lone Star Comfort Systems" is fictional. This is the
 // sample seller data room used to demonstrate the zero-to-intelligence intake:
@@ -13,7 +14,6 @@ export const LS_DEFAULTS = {
   rationale: 'Enter San Antonio with a commercial HVAC service base; tuck in alongside Summit Electrical.',
 };
 
-type DocTpl = Omit<DealDocument, 'id' | 'acqId' | 'uploadedBy' | 'uploadedAt' | 'status'> & { key: string };
 
 export const LS_DOCS: DocTpl[] = [
   {
@@ -228,13 +228,7 @@ export const LS_DOCS: DocTpl[] = [
 ];
 
 export const LS_METRICS: TargetMetrics = {
-  revenue: 14.6,
-  recurringPct: 22.1,
-  top5Pct: 29.7,
-  techRetentionPct: 69.0,
-  ownerDependency: 'High',
-  askMultiple: 7.0,
-  grossMarginPct: 41.2,
+  values: { revenue: 14.6, recurringPct: 22.1, top5Pct: 29.7, techRetentionPct: 69.0, ownerDependency: 'High', askMultiple: 7.0, grossMarginPct: 41.2 },
   sources: {
     revenue: [{ docId: 'cim', page: 19 }],
     recurringPct: [{ docId: 'cust', page: 2 }],
@@ -244,14 +238,6 @@ export const LS_METRICS: TargetMetrics = {
     askMultiple: [{ docId: 'cim', page: 19 }],
   },
 };
-
-type FindingTpl = NonNullable<NonNullable<Proposal['payload']>['finding']>;
-export interface Discovery {
-  key: string;
-  afterDoc: string; // doc key that triggers it during the analysis run
-  finding: FindingTpl;
-  chain: Omit<Proposal, 'id' | 'acqId' | 'createdAt' | 'status' | 'parentFindingId'>[];
-}
 
 export const LS_DISCOVERIES: Discovery[] = [
   {
@@ -266,7 +252,7 @@ export const LS_DISCOVERIES: Discovery[] = [
       calculation: '(1,650 + 880 + 730 + 580 + 500) ÷ 14,600 = 29.7%',
       interpretation: 'Above the 25% playbook threshold, and the largest customer exceeds the 10% level at which Red River lost its anchor customer after close.',
       recommendation: 'Validate top-5 retention before IOI pricing; consider a concentration-specific escrow.',
-      thesisLink: { assumptionId: 'a1', expected: '< 25%', actual: '29.7%' },
+      thesisLink: { assumptionId: 'top5Pct', expected: '< 25%', actual: '29.7%' },
       implications: [
         { area: 'Valuation', text: 'Supports pricing below the seller’s 7.0x ask or contingent consideration.' },
         { area: 'Commercial', text: 'Customer calls needed before LOI.' },
@@ -368,7 +354,7 @@ export const LS_DISCOVERIES: Discovery[] = [
       calculation: '18 ÷ 58 = 31.0%  → retention 69.0%',
       interpretation: 'Well below the 80% retention threshold. Pinecrest Air lost technicians in months 2–5 after close because of pay-band misalignment.',
       recommendation: 'Benchmark pay against Meridian bands before LOI; size a retention pool.',
-      thesisLink: { assumptionId: 'a3', expected: '≥ 80% retention', actual: '69.0%' },
+      thesisLink: { assumptionId: 'techRetentionPct', expected: '≥ 80%', actual: '69.0%' },
       implications: [{ area: 'People', text: 'Retention pool and pay alignment before Day 1.' }],
     },
     chain: [{ kind: 'action', title: 'Benchmark technician pay against Meridian bands', summary: 'Owner: Tom Brennan · due Oct 12', basis: 'Pinecrest lesson (in playbook).', confidence: 'High', payload: { action: { title: 'Benchmark Lone Star technician pay against Meridian bands', ownerId: 'p-tom', workstream: 'hr', due: '2026-10-12', kind: 'Task' } } }],
@@ -421,7 +407,7 @@ export const LS_DISCOVERIES: Discovery[] = [
 ];
 
 /** Information Atlas expected for this stage but did not find. */
-export const LS_GAPS: { title: string; why: string; workstream: 'financial' | 'tax' | 'legal' | 'operations' | 'environmental' | 'commercial' }[] = [
+export const LS_GAPS: { title: string; why: string; workstream: string }[] = [
   { title: 'Monthly P&L, last 24 months', why: 'Needed to test seasonality and the AR deterioration timing.', workstream: 'financial' },
   { title: 'Top-20 customer contracts', why: 'Only 1 of the top 5 contracts was provided; change-of-control exposure unknown for the rest.', workstream: 'legal' },
   { title: 'Sales & use tax filings 2023–2025', why: 'Commercial maintenance is taxable in Texas; ABC had a $110K under-collection.', workstream: 'tax' },

@@ -16,7 +16,9 @@ const TOUR: { title: string; href: string; look: string }[] = [
   { title: 'Open ABC Mechanical, a deal six weeks in', href: A, look: 'The Atlas briefing: what changed, what Atlas found, playbook and prior-deal signals, decisions needed, and meeting prep.' },
   { title: 'Follow one finding to a decision', href: `${A}/findings/f-conc`, look: 'Fact vs. interpretation vs. recommendation, with "Why?" sources. Then the price decision: switch to Dan Whitaker (CEO) to approve it.' },
   { title: 'Ask for an outcome, not a summary', href: `${A}/atlas`, look: '"Prepare me for the management meeting" or "Research this target". Does it read like a capable associate?' },
-  { title: 'See the learning loop', href: '/memory', look: 'Past outcomes become lessons; Atlas proposes playbook changes from patterns across deals; the next deal is scored against them.' },
+  { title: 'See the learning loop', href: '/memory', look: 'Past outcomes become lessons; Atlas proposes playbook changes from patterns across deals. Try "Connect archive" to reconstruct old deals from IC memos and integration reports.' },
+  { title: 'Change a playbook threshold', href: '/playbooks', look: 'Thresholds are data the acquirer owns. Loosen top-5 concentration from 25% to 40% and watch active deals re-score.' },
+  { title: 'Switch to a healthcare acquirer', href: '/guide', look: 'Click the organization name (top left) and choose Halcyon Health Partners. Same engine, different playbook, workstreams, team and memory. Start a new acquisition with the sample orthopedic practice.' },
 ];
 
 const BOUNDARY: [string, boolean, string][] = [

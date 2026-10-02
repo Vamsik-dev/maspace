@@ -80,11 +80,13 @@ export default function OverviewPage() {
     ...soon.map((m) => ({ key: m.id, icon: <IconCalendarEvent size={15} />, tone: 'gray', title: m.title, context: `${fmtDate(m.date)} · in ${differenceInCalendarDays(new Date(m.date), new Date(DEMO_TODAY))} days`, cta: /management/i.test(m.title) ? 'Prepare briefing' : 'View', href: /management/i.test(m.title) ? `${base}/deliverables/dl-mgmt` : `${base}/phase/${m.phase}` })),
   ];
 
-  const ws = workstreamProgress(acq, s.work);
-  const PRIORS = 5;
-  const fit = thesisFit(acq);
-  const sim = similarDeals(acq);
-  const bench = headlineBenchmark(acq);
+  const ws = workstreamProgress(acq, s.work, s.playbooks.find((p) => p.id === acq.playbookId)?.workstreams ?? []);
+  const pb = s.playbooks.find((p) => p.id === acq.playbookId);
+  const priors = s.priors.filter((p) => p.orgId === acq.orgId);
+  const PRIORS = priors.length;
+  const fit = thesisFit(acq, pb);
+  const sim = similarDeals(acq, pb, priors);
+  const bench = headlineBenchmark(acq, pb, priors);
   const pendingProposals = s.proposals.filter((p) => p.acqId === id && p.status === 'Pending').length;
   const recentDocs = s.documents.filter((d) => d.acqId === id && d.uploadedAt >= '2026-09-25').length;
   const recentActs = activity.filter((a) => a.at >= '2026-09-25').length;
@@ -159,7 +161,7 @@ export default function OverviewPage() {
           <BriefRow icon={<IconHistory size={16} color="#4b5a70" />} tone="#f1f4f9" title="Based on your playbook" href={`${base}/research`} cta="Thesis fit">
             {fit ? (
               <>
-                <b>{fit.fail} of {fit.rows.length} criteria fail</b> {fit.watch ? `and ${fit.watch} need watching ` : ''}against Playbook v4.
+                <b>{fit.fail} of {fit.rows.length} criteria fail</b> {fit.watch ? `and ${fit.watch} need watching ` : ''}against {pb?.name} {pb?.version}.
                 {sim.length ? ` Resembles ${sim.slice(0, 2).map((x) => `${x.deal.name} (${x.reasons[0]})`).join(' and ')}.` : ''}
               </>
             ) : (

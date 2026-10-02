@@ -7,7 +7,7 @@ import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { useStore } from '@/lib/store';
 import { workstreamProgress } from '@/lib/derive';
-import { WORKSTREAMS } from '@/lib/meta';
+
 import { Section, Meter, Person, SeverityBadge, StatusBadge, DocIcon, Empty } from '@/components/ui';
 import { WorkTable } from '@/components/WorkTable';
 import { WorkItemDrawer } from '@/components/WorkItemDrawer';
@@ -19,10 +19,10 @@ export default function WorkstreamPage() {
   const s = useStore();
   const [item, setItem] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const meta = WORKSTREAMS.find((w) => w.key === ws);
   const acq = s.acquisitions.find((a) => a.id === id)!;
+  const meta = s.playbooks.find((p) => p.id === acq.playbookId)?.workstreams.find((w) => w.key === ws);
   if (!meta) return <Empty title="Unknown workstream" />;
-  const prog = workstreamProgress(acq, s.work).find((w) => w.key === ws);
+  const prog = workstreamProgress(acq, s.work, s.playbooks.find((p) => p.id === acq.playbookId)?.workstreams ?? []).find((w) => w.key === ws);
   const team = acq.team.filter((m) => m.workstreams.includes(ws));
   const findings = s.findings.filter((f) => f.acqId === id && f.workstream === ws && f.status !== 'Dismissed');
   const docs = s.documents.filter((d) => d.acqId === id && d.workstream === ws);

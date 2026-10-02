@@ -7,7 +7,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '@/lib/store';
-import { WORKSTREAMS, wsLabel } from '@/lib/meta';
+import { useWorkstreams, useOrgPeople } from '@/lib/hooks';
+import { wsLabel } from '@/lib/meta';
 import { fmtDate } from '@/lib/atlas';
 import { PageHeader, DocIcon, PersonAvatar, Empty } from '@/components/ui';
 import { UploadModal } from '@/components/UploadModal';
@@ -28,6 +29,7 @@ function Snippet({ text, q }: { text: string; q: string }) {
 
 export default function DocumentsPage() {
   const { id } = useParams<{ id: string }>();
+  const WS = useWorkstreams(id);
   const router = useRouter();
   const docs = useStore(useShallow((s) => s.documents.filter((d) => d.acqId === id)));
   const findings = useStore(useShallow((s) => s.findings.filter((f) => f.acqId === id)));
@@ -66,7 +68,7 @@ export default function DocumentsPage() {
       />
       <Group gap="sm">
         <TextInput size="xs" w={320} leftSection={<IconSearch size={13} />} placeholder="Search names and document contents…" value={q} onChange={(e) => setQ(e.currentTarget.value)} />
-        <Select size="xs" w={160} placeholder="Workstream" clearable data={WORKSTREAMS.map((w) => ({ value: w.key, label: w.label }))} value={ws} onChange={setWs} />
+        <Select size="xs" w={160} placeholder="Workstream" clearable data={WS.map((w) => ({ value: w.key, label: w.label }))} value={ws} onChange={setWs} />
         <Select size="xs" w={130} placeholder="Source" clearable data={['Seller', 'Advisor', 'Internal', 'Public']} value={src} onChange={setSrc} />
       </Group>
 

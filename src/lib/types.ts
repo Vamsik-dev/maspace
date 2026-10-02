@@ -11,23 +11,27 @@ export type PhaseKey =
   | 'closing'
   | 'integration';
 
-export type WorkstreamKey =
-  | 'financial'
-  | 'tax'
-  | 'legal'
-  | 'commercial'
-  | 'operations'
-  | 'it'
-  | 'hr'
-  | 'insurance'
-  | 'environmental';
+/** Workstreams are defined by each playbook, so the key is open-ended. */
+export type WorkstreamKey = string;
 
 export type Severity = 'Critical' | 'High' | 'Medium' | 'Low';
 
 export type DealRole = 'Owner' | 'Contributor' | 'Reviewer' | 'Approver' | 'Observer';
 
+export interface Organization {
+  id: string;
+  name: string;
+  short: string;
+  description: string;
+  strategy: string;
+  playbookId: string;
+  vertical: string;
+}
+
 export interface Person {
   id: string;
+  /** Tenant the person belongs to. Advisors are engaged per tenant. */
+  orgId: string;
   name: string;
   initials: string;
   title: string;
@@ -85,6 +89,8 @@ export interface ValuationLine {
 
 export interface Acquisition {
   id: string;
+  orgId: string;
+  playbookId: string;
   codename: string;
   name: string;
   status: 'Active' | 'Completed' | 'Paused';
@@ -290,6 +296,10 @@ export interface AutomationRule {
 
 export interface PriorAcquisition {
   id: string;
+  orgId: string;
+  /** How the record got into memory: captured live, or reconstructed from an archive. */
+  origin?: 'Captured' | 'Reconstructed';
+  confidence?: 'High' | 'Medium' | 'Low';
   name: string;
   industry: string;
   location: string;
@@ -302,7 +312,7 @@ export interface PriorAcquisition {
   lessons: { id: string; text: string; category: string; inPlaybook: boolean }[];
   tags: string[];
   /** Characteristics measured in diligence, for benchmarking new targets. */
-  atDiligence: { top5Pct: number; recurringPct: number; techRetentionPct: number; evMultiple: number };
+  atDiligence: Record<string, number>;
 }
 
 export interface FeedbackNote {
@@ -318,14 +328,44 @@ export interface FeedbackNote {
 
 /** Measured target characteristics that the playbook can score. */
 export interface TargetMetrics {
-  revenue: number; // $M
-  recurringPct: number;
-  top5Pct: number;
-  techRetentionPct: number;
-  ownerDependency: 'Low' | 'Moderate' | 'High';
-  askMultiple: number; // EV / adj. EBITDA implied by the ask or LOI
-  grossMarginPct?: number;
-  sources?: Partial<Record<keyof Omit<TargetMetrics, 'sources'>, Citation[]>>;
+  /** Values keyed by playbook criterion key. */
+  values: Record<string, number | string>;
+  sources?: Record<string, Citation[]>;
+}
+
+export type CriterionTest =
+  | { type: 'between'; min: number; max: number }
+  | { type: 'below'; pass: number; watch: number }
+  | { type: 'atLeast'; pass: number; watch: number }
+  | { type: 'atMost'; pass: number; watch: number }
+  | { type: 'level'; pass: string[]; watch: string[] };
+
+export interface PlaybookCriterion {
+  key: string;
+  label: string;
+  unit: '%' | 'x' | '$M' | 'level';
+  test: CriterionTest;
+  /** Used to benchmark against prior deals. */
+  benchmark?: { better: 'low' | 'high' };
+  /** Prior-deal tag that indicates the same issue when the metric was not captured. */
+  similarTag?: string;
+  why: string;
+}
+
+export interface Playbook {
+  id: string;
+  name: string;
+  vertical: string;
+  version: string;
+  status: 'Active' | 'Template';
+  description: string;
+  criteria: PlaybookCriterion[];
+  workstreams: { key: string; label: string; scope: string }[];
+  requestList: { workstream: string; items: string[] }[];
+  decisionGates: string[];
+  integrationPriorities: string[];
+  outcomeMetrics: string[];
+  history?: { version: string; date: string; change: string }[];
 }
 
 export type ProposalKind = 'risk' | 'decision' | 'action' | 'request' | 'deliverable' | 'research' | 'playbook';

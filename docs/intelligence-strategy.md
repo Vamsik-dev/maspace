@@ -1,5 +1,62 @@
 # From workspace to intelligence: research, differentiation and feature options
 
+## Market thesis: M&A maturity relative to acquisition volume
+
+The sweet spot is not company size. It is **acquisition volume that has outgrown the team's M&A infrastructure.**
+
+| Buyer | Internal capability | Our role | What changes in the product |
+|---|---|---|---|
+| Large PE / mega-cap / sophisticated corp dev | Large M&A teams, consultants, internal data and AI | **Augment / integrate**: an institutional intelligence layer over their VDR, models, ERP and archives | SSO/SCIM, granular permissions, private deployment, connectors (VDR MCP, SharePoint, Box), archive backfill, governance and reporting |
+| Mid-market PE / corporate acquirer | Small-to-medium deal team, multiple deals | **High-value operating layer** | Multi-deal portfolio views, advisor access, playbook per strategy or fund |
+| Small/mid-cap serial acquirer (2–10+ deals/yr) | Lean team | **Core product (go-to-market wedge)** | Defaults that work on day 1, templates, the review queue as the daily surface |
+| First-time / occasional acquirer | Limited M&A expertise | **Guidance + workflow + intelligence** | Template playbooks carry the expertise; more explanation and checklists |
+| Healthcare consolidator | Complex regulatory and clinical diligence | **Vertical intelligence layer** | Healthcare playbook, workstreams, regulatory research sources, clinical reviewers |
+
+Lean teams get the most leverage. Sophisticated teams get an intelligence layer they plug into their existing stack. **"Small-to-mid cap" is the go-to-market wedge, not the architectural boundary.** A 5-person corp-dev team and a 50-person global M&A organization run on the same engine. What changes is permissions, integrations, governance, customization, workflow complexity, data volume, deployment and security, and reporting.
+
+### One engine, many playbooks
+
+The model never changes:
+
+`Target → Thesis → Evidence → Finding → Risk → Decision → Action → Integration → Outcome → Learning`
+
+What the customer configures is the **playbook**:
+
+`Acquisition strategy → Thesis → Thresholds → Workstreams → Diligence requests → Decision gates → Integration priorities → Outcome metrics`
+
+Industry templates sit on top: Mechanical Services, Specialty Healthcare, Dental Roll-up, Behavioral Health and Software Buy-and-Build.
+
+**Built in the prototype:**
+- **Playbooks as data:** `src/data/playbooks.ts`.
+- **A generic evaluator:** `src/lib/playbook.ts`. It scores any playbook's criteria and benchmarks against that organization's own prior deals.
+- **Two tenants on the same engine:** Meridian (mechanical) and Halcyon Health Partners (specialty healthcare). Each has its own workstreams, team, playbook, sample data room and memory. Deals never cross tenants; opening another tenant's deal is blocked.
+- **Healthcare example:** a 6-clinic orthopedic practice whose CIM claims a "diversified referral base". Atlas finds the top 3 sources are 61% of referrals against a 42% historical median, and two physicians generate 48% of collections. Implications are spread across commercial, people, regulatory, valuation and integration, and the drafted decision asks: "Should the acquisition proceed at the current valuation?"
+- **Editable thresholds:** active deals re-score live.
+
+### Expansion
+
+1. **Prove the engine:** HVAC, plumbing, electrical, fire & life safety, field services. The acquisition patterns repeat and are easy to understand.
+2. **Adjacent fragmented industries:** landscaping, facilities, environmental, specialty contracting, industrial and home services. Same buy-and-build dynamics; new templates.
+3. **Healthcare:** large, but needs deeper domain validation (regulatory, clinical, payer). Validate the healthcare playbook with a healthcare M&A SME before selling.
+4. **Larger enterprises:** "Give your M&A organization an institutional intelligence layer." Their teams, VDR, models and ERP stay; we connect evidence → intelligence → decisions → execution → organizational memory.
+
+### The enterprise memory use case
+
+A company with 40 acquisitions over ten years has its knowledge scattered across deal folders, Excel, IC memos, email, integration reports, consultant documents and VDR archives. **Archive backfill** reconstructs each deal into structured memory (thesis, metrics at diligence, outcomes, lessons), shows confidence and gaps, and asks a person to confirm each record. The prototype shows this under **Memory → Connect archive**, with questions such as:
+
+- Show me acquisitions similar to this target.
+- Which diligence findings were predictive of post-close underperformance?
+- Which assumptions have historically been wrong?
+- What integration risks repeatedly caused problems?
+
+### The moat
+
+The moat is not the LLM, and not the workflow UI. It is **structured, institution-specific acquisition memory**. Every deal adds outcome-linked evidence, which improves the playbook, which improves the next screen, diligence, decision and integration. The system becomes more valuable to that customer with every acquisition, and the memory is hard to rebuild elsewhere because it is structured around their own decisions and outcomes.
+
+**Validation question for the SME:** at which segment does each part of this matter most, and would a larger acquirer pay for the memory layer alone?
+
+
+
 ## The answer to "do users fill in every field?"
 
 No. If users have to type in every finding, risk, decision and work item, we have built a nicer M&A project tracker, not the product we set out to build.

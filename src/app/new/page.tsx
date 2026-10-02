@@ -7,14 +7,20 @@ import { useState } from 'react';
 import { TopBar } from '@/components/Chrome';
 import { PageHeader, DocIcon, Section } from '@/components/ui';
 import { useStore } from '@/lib/store';
-import { LS_DEFAULTS, LS_DOCS } from '@/data/lonestar';
+import { SAMPLES } from '@/data/samples';
+import { useOrg, useOrgPlaybook } from '@/lib/hooks';
 
 const STRATEGIES = [
   'New geography: entry point for future tuck-ins',
-  'Platform add-on: route density in an existing market',
+  'Platform add-on: density in an existing market',
   'New service line: add capability to existing customers',
   'Tuck-in to an existing portfolio company',
 ];
+
+const INDUSTRIES: Record<string, string[]> = {
+  'org-meridian': ['HVAC services', 'Plumbing services', 'Electrical services', 'Fire / life safety', 'Landscaping', 'Facilities services', 'Specialty contracting', 'Environmental services', 'Industrial services'],
+  'org-halcyon': ['Orthopedics & spine', 'Sports medicine', 'Hand & upper extremity', 'Pain management', 'Physical therapy', 'Ambulatory surgery center'],
+};
 
 const BOUNDARY: [string, string, string][] = [
   ['Read and classify every document', 'Atlas', ''],
@@ -27,12 +33,17 @@ const BOUNDARY: [string, string, string][] = [
 
 export default function NewAcquisitionPage() {
   const router = useRouter();
+  const org = useOrg();
+  const pb = useOrgPlaybook();
+  const SAMPLE = SAMPLES[org.id];
+  const LS_DEFAULTS = SAMPLE.defaults;
+  const LS_DOCS = SAMPLE.docs;
   const add = useStore((s) => s.addAcquisition);
   const run = useStore((s) => s.runAnalysis);
   const [step, setStep] = useState(0);
   const [sample, setSample] = useState(true);
   const [ownFiles, setOwnFiles] = useState<File[]>([]);
-  const [v, setV] = useState({ name: '', industry: 'HVAC services', hq: '', revenue: '' as number | string, ebitda: '' as number | string, rationale: '', strategy: STRATEGIES[0] });
+  const [v, setV] = useState({ name: '', industry: INDUSTRIES[org.id][0], hq: '', revenue: '' as number | string, ebitda: '' as number | string, rationale: '', strategy: STRATEGIES[0] });
   const valid = v.name.trim() && v.hq.trim() && Number(v.revenue) > 0 && Number(v.ebitda) > 0;
 
   const create = () => {
@@ -47,7 +58,7 @@ export default function NewAcquisitionPage() {
     <Box>
       <TopBar />
       <Box px={{ base: 'md', md: 40 }} py={28} maw={1080} mx="auto">
-        <PageHeader eyebrow="New acquisition" title="Tell us the basics. Atlas does the reading." description="Six fields and the seller’s documents are enough. Atlas reads the data room, scores the target against your playbook and past deals, researches it, and drafts findings and requests for your team to review." />
+        <PageHeader eyebrow="New acquisition" title="Tell us the basics. Atlas does the reading." description={`Six fields and the seller’s documents are enough. Atlas reads the data room, scores the target against ${pb.name} ${pb.version} and your past deals, researches it, and drafts findings and requests for your team to review.`} />
         <Stepper active={step} size="sm" mb="xl" color="ink.7">
           <Stepper.Step label="Target" description="Six fields" />
           <Stepper.Step label="Documents" description="Seller data room" />
@@ -57,7 +68,7 @@ export default function NewAcquisitionPage() {
           <Section title="Target">
             <Stack gap="md">
               <Group justify="space-between" p="sm" style={{ background: 'var(--app-brand-soft)', borderRadius: 8 }}>
-                <Text size="sm">For the demo, use the sample target and its synthetic data room.</Text>
+                <Text size="sm">For the demo, use the sample target ({LS_DEFAULTS.name}) and its synthetic data room.</Text>
                 <Button
                   size="xs"
                   variant="light"
@@ -70,8 +81,8 @@ export default function NewAcquisitionPage() {
                 </Button>
               </Group>
               <SimpleGrid cols={{ base: 1, sm: 2 }}>
-                <TextInput size="sm" id="t-name" label="Target name" placeholder="e.g. Lone Star Comfort Systems" value={v.name} onChange={(e) => setV({ ...v, name: e.currentTarget.value })} />
-                <Select size="sm" id="t-ind" label="Industry" data={['HVAC services', 'Plumbing services', 'Electrical services', 'Fire / life safety', 'Landscaping', 'Facilities services', 'Specialty contracting', 'Environmental services', 'Industrial services']} value={v.industry} onChange={(x) => setV({ ...v, industry: x ?? v.industry })} />
+                <TextInput size="sm" id="t-name" label="Target name" placeholder={`e.g. ${LS_DEFAULTS.name}`} value={v.name} onChange={(e) => setV({ ...v, name: e.currentTarget.value })} />
+                <Select size="sm" id="t-ind" label="Industry" data={INDUSTRIES[org.id]} value={v.industry} onChange={(x) => setV({ ...v, industry: x ?? v.industry })} />
                 <TextInput size="sm" id="t-hq" label="Location" placeholder="City, State" value={v.hq} onChange={(e) => setV({ ...v, hq: e.currentTarget.value })} />
                 <Group grow>
                   <NumberInput size="sm" id="t-rev" label="Revenue (~$M)" decimalScale={1} min={0} value={v.revenue} onChange={(x) => setV({ ...v, revenue: x })} />
@@ -98,7 +109,7 @@ export default function NewAcquisitionPage() {
                   checked={sample}
                   onChange={(e) => setSample(e.currentTarget.checked)}
                   label={<Text size="sm" fw={500}>Attach the sample seller data room ({LS_DOCS.length} documents)</Text>}
-                  description="Synthetic CIM, financials, customer file, AR aging, lease, licenses, census, a top-customer contract and more."
+                  description={`Synthetic: ${LS_DOCS.slice(0, 5).map((d) => d.category.toLowerCase()).join(', ')} and more.`}
                 />
                 {sample && (
                   <Box style={{ border: '1px solid var(--app-border)', borderRadius: 8, maxHeight: 260, overflowY: 'auto' }}>

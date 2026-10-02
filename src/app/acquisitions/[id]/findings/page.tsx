@@ -7,7 +7,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '@/lib/store';
-import { WORKSTREAMS, wsLabel } from '@/lib/meta';
+import { useWorkstreams, useOrgPeople } from '@/lib/hooks';
+import { wsLabel } from '@/lib/meta';
 import { PageHeader, SeverityBadge, StatusBadge, Person, Empty, AtlasAvatar } from '@/components/ui';
 import { NewFindingModal } from '@/components/Forms';
 import { fmtDate } from '@/lib/atlas';
@@ -16,6 +17,7 @@ const sev = { Critical: 0, High: 1, Medium: 2, Low: 3 };
 
 export default function FindingsPage() {
   const { id } = useParams<{ id: string }>();
+  const WS = useWorkstreams(id);
   const router = useRouter();
   const all = useStore(useShallow((s) => s.findings.filter((f) => f.acqId === id)));
   const [view, setView] = useState('open');
@@ -51,7 +53,7 @@ export default function FindingsPage() {
               { value: 'all', label: `All (${all.length})` },
             ]}
           />
-          <Select size="xs" placeholder="All workstreams" clearable data={WORKSTREAMS.map((w) => ({ value: w.key, label: w.label }))} value={ws} onChange={setWs} w={180} />
+          <Select size="xs" placeholder="All workstreams" clearable data={WS.map((w) => ({ value: w.key, label: w.label }))} value={ws} onChange={setWs} w={180} />
         </Group>
         {proposed > 0 && (
           <Badge color="violet" leftSection={<IconSparkles size={11} />}>

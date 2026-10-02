@@ -1,0 +1,196 @@
+import type { Organization, Playbook } from '@/lib/types';
+
+// SYNTHETIC DEMO DATA. One engine, many playbooks: the acquisition knowledge
+// (thresholds, workstreams, requests, gates, outcome metrics) is data that each
+// acquirer owns and edits. Industry templates are starting points.
+
+export const ORGS: Organization[] = [
+  {
+    id: 'org-meridian',
+    name: 'Meridian Field Services',
+    short: 'Meridian',
+    description: 'Texas platform of commercial and residential trade service businesses.',
+    strategy: 'Buy-and-build in Texas mechanical, plumbing, electrical and fire/life-safety services. Prefer $10–25M revenue founder-owned businesses with ≥25% recurring service revenue.',
+    playbookId: 'pb-mech',
+    vertical: 'Mechanical & field services',
+  },
+  {
+    id: 'org-halcyon',
+    name: 'Halcyon Health Partners',
+    short: 'Halcyon',
+    description: 'Regional specialty healthcare group (orthopedics, spine, sports medicine) across the Ohio Valley.',
+    strategy: 'Acquire independent orthopedic and spine practices with ambulatory surgery capacity, $15–60M revenue, diversified referrals and commercial payer mix.',
+    playbookId: 'pb-health',
+    vertical: 'Specialty healthcare services',
+  },
+];
+
+export const MECH_WORKSTREAMS = [
+  { key: 'financial', label: 'Financial', scope: 'Quality of earnings, working capital, debt-like items, forecast.' },
+  { key: 'tax', label: 'Tax', scope: 'Income, sales & use, payroll tax exposure; structure.' },
+  { key: 'legal', label: 'Legal', scope: 'Contracts, change of control, litigation, licenses, corporate records.' },
+  { key: 'commercial', label: 'Commercial', scope: 'Customers, concentration, recurring revenue, pricing, market.' },
+  { key: 'operations', label: 'Operations', scope: 'Branches, dispatch, fleet, technicians, service delivery.' },
+  { key: 'it', label: 'IT', scope: 'Field service software, ERP, data, cyber hygiene.' },
+  { key: 'hr', label: 'HR', scope: 'Workforce, key people, compensation, retention, benefits.' },
+  { key: 'insurance', label: 'Insurance / Risk', scope: 'Coverage, claims history, warranty exposure.' },
+  { key: 'environmental', label: 'Environmental / Regulatory', scope: 'Refrigerant handling, permits, licensing compliance.' },
+];
+
+export const HEALTH_WORKSTREAMS = [
+  { key: 'rcm', label: 'Financial & Revenue Cycle', scope: 'Payer mix, reimbursement, collections, EBITDA normalization, working capital.' },
+  { key: 'clinical', label: 'Clinical Quality', scope: 'Quality metrics, adverse events, protocols, clinical staffing.' },
+  { key: 'regulatory', label: 'Regulatory & Compliance', scope: 'Licensure, accreditation, Medicare/Medicaid enrollment, change-of-ownership filings, Stark/AKS.' },
+  { key: 'payer', label: 'Payer Contracting', scope: 'Commercial contracts, rates, assignment and change-of-control terms.' },
+  { key: 'physicians', label: 'Physicians & Providers', scope: 'Physician dependency, productivity, employment terms, retention.' },
+  { key: 'referrals', label: 'Referrals & Commercial', scope: 'Referral sources, patient retention, service mix, market share.' },
+  { key: 'ops', label: 'Operations', scope: 'Locations, scheduling, capacity, ASC utilization.' },
+  { key: 'ehr', label: 'Technology & EHR', scope: 'EHR, billing systems, interoperability, cybersecurity, data migration.' },
+  { key: 'legal', label: 'Legal', scope: 'Corporate structure, real estate, litigation, malpractice history.' },
+];
+
+export const PLAYBOOKS: Playbook[] = [
+  {
+    id: 'pb-mech',
+    name: 'Mechanical Services',
+    vertical: 'HVAC · plumbing · electrical · fire & life safety',
+    version: 'v4',
+    status: 'Active',
+    description: 'Founder-owned field service businesses in Texas. Route density, recurring maintenance revenue and technician retention drive value.',
+    criteria: [
+      { key: 'revenue', label: 'Revenue', unit: '$M', test: { type: 'between', min: 10, max: 25 }, why: 'Large enough to stand alone, small enough to integrate.' },
+      { key: 'recurringPct', label: 'Recurring service revenue', unit: '%', test: { type: 'atLeast', pass: 25, watch: 20 }, benchmark: { better: 'high' }, why: 'Maintenance agreements drive durability and valuation.' },
+      { key: 'top5Pct', label: 'Top-5 customer concentration', unit: '%', test: { type: 'below', pass: 25, watch: 30 }, benchmark: { better: 'low' }, why: 'Red River lost its anchor customer at 34%.' },
+      { key: 'techRetentionPct', label: 'Technician retention', unit: '%', test: { type: 'atLeast', pass: 80, watch: 75 }, benchmark: { better: 'high' }, why: 'Technicians are the capacity constraint.' },
+      { key: 'ownerDependency', label: 'Founder dependency', unit: 'level', test: { type: 'level', pass: ['Low'], watch: ['Moderate'] }, similarTag: 'licensing', why: 'Founders often hold the contractor license.' },
+      { key: 'askMultiple', label: 'Price vs. guardrail', unit: 'x', test: { type: 'atMost', pass: 6.5, watch: 6.8 }, benchmark: { better: 'low' }, why: 'Guardrail for the $15–25M band.' },
+    ],
+    workstreams: MECH_WORKSTREAMS,
+    requestList: [
+      { workstream: 'financial', items: ['Monthly P&L, 24 months', 'AR / AP aging', 'Quality of earnings'] },
+      { workstream: 'commercial', items: ['Revenue by customer, 3 years', 'Maintenance agreement roster'] },
+      { workstream: 'legal', items: ['Top-20 customer contracts', 'Corporate records'] },
+      { workstream: 'operations', items: ['Fleet schedule', 'Branch P&Ls'] },
+      { workstream: 'environmental', items: ['License register', 'EPA 608 records'] },
+    ],
+    decisionGates: ['Screen → IOI: thesis fit ≥ 4 of 6', 'LOI: price within guardrail or structured', 'SPA: every High finding has a contractual answer', 'IC: QoE final and top-5 customer calls complete'],
+    integrationPriorities: ['License qualifier in place Day 1', 'Pay-band alignment before announcement', 'Defer field-service software migration to month 6', 'Top-account relationship owners named'],
+    outcomeMetrics: ['Year-1 revenue vs. plan', 'Year-1 EBITDA margin', 'Technician retention at 12 months', 'Top-5 customer retention', 'Synergies realized'],
+    history: [
+      { version: 'v4', date: '2026-03', change: 'Added technician retention threshold (Pinecrest) and warranty-cost rule (Gulf Coast).' },
+      { version: 'v3', date: '2025-06', change: 'Successor license qualifier required before close (Bluebonnet).' },
+      { version: 'v2', date: '2024-01', change: 'Recurring revenue threshold raised from 20% to 25%.' },
+    ],
+  },
+  {
+    id: 'pb-health',
+    name: 'Specialty Healthcare Services',
+    vertical: 'Orthopedics · spine · sports medicine · ASCs',
+    version: 'v2',
+    status: 'Active',
+    description: 'Independent physician practices with surgical capacity. Referral durability, physician retention, payer mix and regulatory continuity drive value.',
+    criteria: [
+      { key: 'revenue', label: 'Net revenue', unit: '$M', test: { type: 'between', min: 15, max: 60 }, why: 'Scale to support an ASC and shared services.' },
+      { key: 'commercialPayerPct', label: 'Commercial payer mix', unit: '%', test: { type: 'atLeast', pass: 55, watch: 50 }, benchmark: { better: 'high' }, why: 'Reimbursement durability.' },
+      { key: 'top3ReferralPct', label: 'Top-3 referral sources', unit: '%', test: { type: 'below', pass: 40, watch: 50 }, benchmark: { better: 'low' }, why: 'Lakeside lost 22% of volume when a referring group affiliated elsewhere.' },
+      { key: 'top2PhysicianPct', label: 'Top-2 physicians share of collections', unit: '%', test: { type: 'below', pass: 35, watch: 45 }, benchmark: { better: 'low' }, similarTag: 'physician', why: 'Physician dependency is the most common retrade driver.' },
+      { key: 'providerRetentionPct', label: 'Provider retention (3-yr)', unit: '%', test: { type: 'atLeast', pass: 85, watch: 80 }, benchmark: { better: 'high' }, why: 'Clinical capacity and referral continuity.' },
+      { key: 'askMultiple', label: 'Price vs. guardrail', unit: 'x', test: { type: 'atMost', pass: 9.0, watch: 9.5 }, benchmark: { better: 'low' }, why: 'Guardrail for single-specialty groups with ASC.' },
+    ],
+    workstreams: HEALTH_WORKSTREAMS,
+    requestList: [
+      { workstream: 'rcm', items: ['Payer mix by location, 3 years', 'Collections and denials report', 'AR aging by payer'] },
+      { workstream: 'referrals', items: ['Referral source report, 3 years'] },
+      { workstream: 'physicians', items: ['Provider productivity (wRVU, collections)', 'Physician employment agreements'] },
+      { workstream: 'regulatory', items: ['Licensure and Medicare enrollment register', 'Accreditation surveys', 'Compliance program and audits'] },
+      { workstream: 'payer', items: ['Top-10 payer contracts'] },
+      { workstream: 'ehr', items: ['EHR and billing system inventory', 'Security risk assessment'] },
+    ],
+    decisionGates: ['Screen → IOI: thesis fit ≥ 4 of 6', 'LOI: physician leadership aligned on terms', 'Signing: change-of-ownership filings and payer assignments mapped', 'IC: top physicians signed to retention agreements'],
+    integrationPriorities: ['Medicare change-of-ownership filed before close; billing continuity plan', 'Top physicians’ retention signed at closing', 'Referral-source outreach in week 1', 'EHR migration after first full quarter'],
+    outcomeMetrics: ['Year-1 collections vs. plan', 'Physician retention at 12 and 24 months', 'Referral volume retention', 'Days in AR', 'ASC utilization'],
+    history: [
+      { version: 'v2', date: '2026-02', change: 'Added top-2 physician share and referral thresholds (Lakeside, Summit Spine).' },
+      { version: 'v1', date: '2024-09', change: 'First playbook, adapted from the Specialty Healthcare template.' },
+    ],
+  },
+  {
+    id: 'pb-dental',
+    name: 'Dental Roll-up',
+    vertical: 'General and specialty dentistry (DSO)',
+    version: 'Template',
+    status: 'Template',
+    description: 'Starting point for DSO acquirers. Edit thresholds before first use.',
+    criteria: [
+      { key: 'revenue', label: 'Collections', unit: '$M', test: { type: 'between', min: 2, max: 15 }, why: 'Typical single- to multi-office practice.' },
+      { key: 'hygienePct', label: 'Hygiene share of production', unit: '%', test: { type: 'atLeast', pass: 25, watch: 20 }, why: 'Recurring patient base.' },
+      { key: 'ownerDentistPct', label: 'Owner-dentist share of production', unit: '%', test: { type: 'below', pass: 50, watch: 65 }, why: 'Owner dependency.' },
+      { key: 'ppoPct', label: 'PPO share of collections', unit: '%', test: { type: 'below', pass: 70, watch: 80 }, why: 'Reimbursement pressure.' },
+      { key: 'askMultiple', label: 'Price vs. guardrail', unit: 'x', test: { type: 'atMost', pass: 7.0, watch: 7.5 }, why: 'Single-practice guardrail.' },
+    ],
+    workstreams: [
+      { key: 'rcm', label: 'Financial & Revenue Cycle', scope: 'Collections, payer mix, EBITDA normalization.' },
+      { key: 'clinical', label: 'Clinical', scope: 'Production mix, quality, treatment plans.' },
+      { key: 'providers', label: 'Dentists & Hygienists', scope: 'Owner transition, associate retention.' },
+      { key: 'regulatory', label: 'Regulatory', scope: 'State dental board, CPOM rules, radiation permits.' },
+      { key: 'ops', label: 'Operations', scope: 'Chairs, scheduling, supply chain.' },
+      { key: 'tech', label: 'Practice Management Systems', scope: 'PMS, imaging, data migration.' },
+    ],
+    requestList: [],
+    decisionGates: ['Screen: owner transition plan', 'LOI: rollover equity terms'],
+    integrationPriorities: ['Owner-dentist transition', 'PMS migration timing'],
+    outcomeMetrics: ['Same-store collections growth', 'Associate retention'],
+  },
+  {
+    id: 'pb-bh',
+    name: 'Behavioral Health',
+    vertical: 'Outpatient and residential behavioral health',
+    version: 'Template',
+    status: 'Template',
+    description: 'Starting point for behavioral health acquirers. Requires healthcare regulatory review.',
+    criteria: [
+      { key: 'revenue', label: 'Net revenue', unit: '$M', test: { type: 'between', min: 5, max: 40 }, why: '' },
+      { key: 'commercialPayerPct', label: 'Commercial payer mix', unit: '%', test: { type: 'atLeast', pass: 50, watch: 40 }, why: '' },
+      { key: 'clinicianTurnoverPct', label: 'Clinician retention', unit: '%', test: { type: 'atLeast', pass: 75, watch: 65 }, why: '' },
+      { key: 'occupancyPct', label: 'Bed occupancy (residential)', unit: '%', test: { type: 'atLeast', pass: 80, watch: 70 }, why: '' },
+    ],
+    workstreams: [
+      { key: 'rcm', label: 'Financial & Revenue Cycle', scope: 'Payer mix, authorizations, denials.' },
+      { key: 'clinical', label: 'Clinical Quality', scope: 'Outcomes, incident reports, staffing ratios.' },
+      { key: 'regulatory', label: 'Licensing & Accreditation', scope: 'State licensure, Joint Commission/CARF, 42 CFR Part 2.' },
+      { key: 'workforce', label: 'Clinical Workforce', scope: 'Licensed clinicians, supervision, retention.' },
+      { key: 'ehr', label: 'Technology & EHR', scope: 'EHR, privacy controls.' },
+    ],
+    requestList: [],
+    decisionGates: ['Screen: licensure and accreditation in good standing'],
+    integrationPriorities: ['Licensure change-of-ownership timing'],
+    outcomeMetrics: ['Census vs. plan', 'Clinician retention'],
+  },
+  {
+    id: 'pb-software',
+    name: 'Software Buy-and-Build',
+    vertical: 'Vertical SaaS tuck-ins',
+    version: 'Template',
+    status: 'Template',
+    description: 'Starting point for software acquirers adding vertical SaaS products.',
+    criteria: [
+      { key: 'revenue', label: 'ARR', unit: '$M', test: { type: 'between', min: 3, max: 30 }, why: '' },
+      { key: 'nrrPct', label: 'Net revenue retention', unit: '%', test: { type: 'atLeast', pass: 100, watch: 95 }, why: '' },
+      { key: 'top5Pct', label: 'Top-5 customer concentration', unit: '%', test: { type: 'below', pass: 20, watch: 30 }, why: '' },
+      { key: 'grossMarginPct', label: 'Gross margin', unit: '%', test: { type: 'atLeast', pass: 75, watch: 65 }, why: '' },
+    ],
+    workstreams: [
+      { key: 'financial', label: 'Financial', scope: 'ARR quality, revenue recognition, SaaS metrics.' },
+      { key: 'product', label: 'Product & Technology', scope: 'Architecture, technical debt, security, IP.' },
+      { key: 'commercial', label: 'Commercial', scope: 'Cohorts, churn, pricing, pipeline.' },
+      { key: 'legal', label: 'Legal', scope: 'Customer contracts, open-source licenses, data privacy.' },
+      { key: 'people', label: 'People', scope: 'Engineering retention, key-person risk.' },
+    ],
+    requestList: [],
+    decisionGates: ['Screen: NRR and churn verified from billing data'],
+    integrationPriorities: ['Engineering retention', 'Platform roadmap alignment'],
+    outcomeMetrics: ['ARR growth', 'NRR at 12 months'],
+  },
+];
+
+export const ALL_WORKSTREAMS = [...MECH_WORKSTREAMS, ...HEALTH_WORKSTREAMS, ...PLAYBOOKS.flatMap((p) => p.workstreams)];

@@ -7,13 +7,16 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { notifications } from '@mantine/notifications';
-import { PEOPLE, ACQUIRER, personById } from '@/data/people';
+import { PEOPLE, personById } from '@/data/people';
+import { ORGS } from '@/data/playbooks';
+import { useOrg } from '@/lib/hooks';
 import { useStore } from '@/lib/store';
 import { useUi } from '@/lib/ui-store';
 import { wsLabel } from '@/lib/meta';
 import { DealNav } from './DealNav';
 
 export function Logo({ dark = true }: { dark?: boolean }) {
+  const org = useOrg();
   return (
     <Group gap={10} wrap="nowrap">
       <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden>
@@ -21,12 +24,12 @@ export function Logo({ dark = true }: { dark?: boolean }) {
         <path d="M6 18.5V8l7 6.2L20 8v10.5" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
         <circle cx="20" cy="18.5" r="1.9" fill="#c9a24b" />
       </svg>
-      <Box lh={1.05}>
+      <Box lh={1.05} visibleFrom={dark ? 'sm' : undefined}>
         <Text fw={600} fz={13.5} c={dark ? 'white' : 'dark'} style={{ letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
-          {ACQUIRER.name}
+          {org.name}
         </Text>
         <Text fz={10.5} c={dark ? '#8fa2c0' : 'dimmed'} fw={500} style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-          Deal Workspace
+          {org.vertical}
         </Text>
       </Box>
     </Group>
@@ -35,6 +38,7 @@ export function Logo({ dark = true }: { dark?: boolean }) {
 
 export function UserSwitcher() {
   const me = useStore((s) => s.currentUserId);
+  const orgId = useStore((s) => s.currentOrgId);
   const set = useStore((s) => s.setCurrentUser);
   const p = personById(me)!;
   return (
@@ -45,7 +49,7 @@ export function UserSwitcher() {
             <Avatar size={26} radius="xl" color={p.color} variant="filled" fz={10.5}>
               {p.initials}
             </Avatar>
-            <Box visibleFrom="lg" lh={1.15} style={{ whiteSpace: 'nowrap' }}>
+            <Box visibleFrom="xl" lh={1.15} style={{ whiteSpace: 'nowrap' }}>
               <Text fz={12.5} fw={600} c="white">
                 {p.name}
               </Text>
@@ -60,7 +64,7 @@ export function UserSwitcher() {
       <Menu.Dropdown>
         <Menu.Label>View the workspace as… (prototype)</Menu.Label>
         <ScrollArea.Autosize mah={420}>
-          {PEOPLE.map((x) => (
+          {PEOPLE.filter((x) => x.orgId === orgId).map((x) => (
             <Menu.Item
               key={x.id}
               onClick={() => set(x.id)}
@@ -85,9 +89,62 @@ export function UserSwitcher() {
   );
 }
 
+export function OrgSwitcher() {
+  const org = useOrg();
+  const setOrg = useStore((s) => s.setOrg);
+  const router = useRouter();
+  return (
+    <Menu position="bottom-start" width={340}>
+      <Menu.Target>
+        <UnstyledButton aria-label="Switch organization" className="topnav-btn" px={6}>
+          <Group gap={8} wrap="nowrap">
+            <Logo />
+            <IconChevronDown size={13} color="#8fa2c0" />
+          </Group>
+        </UnstyledButton>
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Label>Organization (separate customers in the demo)</Menu.Label>
+        {ORGS.map((o) => (
+          <Menu.Item
+            key={o.id}
+            onClick={() => {
+              setOrg(o.id);
+              router.push('/');
+            }}
+            rightSection={o.id === org.id ? <Badge size="xs">Current</Badge> : null}
+          >
+            <Text size="sm" fw={600}>
+              {o.name}
+            </Text>
+            <Text fz={11} c="dimmed">
+              {o.vertical}
+            </Text>
+          </Menu.Item>
+        ))}
+        <Menu.Divider />
+        <Text fz={11} c="dimmed" px="sm" py={6}>
+          Each organization is its own tenant: deals, documents, people, playbook and acquisition memory never cross between them.
+        </Text>
+      </Menu.Dropdown>
+    </Menu>
+  );
+}
+
 function GlobalSearch() {
   const router = useRouter();
-  const s = useStore();
+  const all = useStore();
+  const orgAcq = all.acquisitions.filter((a) => a.orgId === all.currentOrgId);
+  const ids = new Set(orgAcq.map((a) => a.id));
+  const s = {
+    acquisitions: orgAcq,
+    findings: all.findings.filter((x) => ids.has(x.acqId)),
+    decisions: all.decisions.filter((x) => ids.has(x.acqId)),
+    risks: all.risks.filter((x) => ids.has(x.acqId)),
+    documents: all.documents.filter((x) => ids.has(x.acqId)),
+    deliverables: all.deliverables.filter((x) => ids.has(x.acqId)),
+    work: all.work.filter((x) => ids.has(x.acqId)),
+  };
   const actions: SpotlightActionData[] = useMemo(() => {
     const acqName = (id: string) => s.acquisitions.find((a) => a.id === id)?.name ?? '';
     const go = (href: string) => () => router.push(href);
@@ -100,7 +157,8 @@ function GlobalSearch() {
       ...s.deliverables.map((d) => ({ id: d.id, label: d.title, description: `Deliverable · ${d.status}`, onClick: go(`/acquisitions/${d.acqId}/deliverables/${d.id}`), leftSection: <IconFileText size={17} stroke={1.6} /> })),
       ...s.work.map((w) => ({ id: w.id, label: w.title, description: `Work item · ${w.status} · ${acqName(w.acqId)}`, onClick: go(`/acquisitions/${w.acqId}/work?item=${w.id}`), leftSection: <IconListCheck size={17} stroke={1.6} /> })),
     ];
-  }, [s.acquisitions, s.findings, s.decisions, s.risks, s.documents, s.deliverables, s.work, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [all.acquisitions, all.findings, all.decisions, all.risks, all.documents, all.deliverables, all.work, all.currentOrgId, router]);
   return (
     <Spotlight
       actions={actions}
@@ -175,17 +233,16 @@ export function TopBar({ acqId }: { acqId?: string }) {
   const [menu, setMenu] = useState(false);
   const nav = [
     { href: '/', label: 'Portfolio', active: path === '/' || path.startsWith('/acquisitions') },
-    { href: '/memory', label: 'Memory & Playbook', active: path.startsWith('/memory') },
-    { href: '/guide', label: 'Reviewer guide', active: path.startsWith('/guide') },
+    { href: '/memory', label: 'Memory', active: path.startsWith('/memory') },
+    { href: '/playbooks', label: 'Playbooks', active: path.startsWith('/playbooks') },
+    { href: '/guide', label: 'Guide', active: path.startsWith('/guide') },
   ];
   return (
     <>
       <Group h={56} px={{ base: 'md', md: 'lg' }} justify="space-between" wrap="nowrap" gap="md" style={{ background: 'var(--app-navy)', borderBottom: '1px solid #000814', flexShrink: 0 }} className="no-print">
         <Group gap="lg" wrap="nowrap">
           <Burger opened={menu} onClick={() => setMenu(true)} size="sm" color="#c3cee0" hiddenFrom="md" aria-label="Open navigation" />
-          <Link href="/">
-            <Logo />
-          </Link>
+          <OrgSwitcher />
           <Group gap={2} visibleFrom="md" wrap="nowrap">
             {nav.map((n) => (
               <Link key={n.href} href={n.href} className="topnav-btn" data-active={n.active || undefined}>

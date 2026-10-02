@@ -1,4 +1,5 @@
 import type { PhaseKey, WorkstreamKey, Severity } from './types';
+import { ALL_WORKSTREAMS, MECH_WORKSTREAMS } from '@/data/playbooks';
 
 export const DEMO_TODAY = '2026-10-02';
 
@@ -20,19 +21,10 @@ export const PHASES: { key: PhaseKey; n: number; label: string; short: string; p
 export const phaseLabel = (k: PhaseKey) => PHASES.find((p) => p.key === k)!.label;
 export const phaseShort = (k: PhaseKey) => PHASES.find((p) => p.key === k)!.short;
 
-export const WORKSTREAMS: { key: WorkstreamKey; label: string; scope: string }[] = [
-  { key: 'financial', label: 'Financial', scope: 'Quality of earnings, working capital, debt-like items, forecast.' },
-  { key: 'tax', label: 'Tax', scope: 'Income, sales & use, payroll tax exposure; structure.' },
-  { key: 'legal', label: 'Legal', scope: 'Contracts, change of control, litigation, licenses, corporate records.' },
-  { key: 'commercial', label: 'Commercial', scope: 'Customers, concentration, recurring revenue, pricing, market.' },
-  { key: 'operations', label: 'Operations', scope: 'Branches, dispatch, fleet, technicians, service delivery.' },
-  { key: 'it', label: 'IT', scope: 'Field service software, ERP, data, cyber hygiene.' },
-  { key: 'hr', label: 'HR', scope: 'Workforce, key people, compensation, retention, benefits.' },
-  { key: 'insurance', label: 'Insurance / Risk', scope: 'Coverage, claims history, warranty exposure.' },
-  { key: 'environmental', label: 'Environmental / Regulatory', scope: 'Refrigerant handling, permits, licensing compliance.' },
-];
+/** Default (mechanical services) workstreams. Each playbook defines its own. */
+export const WORKSTREAMS = MECH_WORKSTREAMS;
 
-export const wsLabel = (k: WorkstreamKey) => WORKSTREAMS.find((w) => w.key === k)!.label;
+export const wsLabel = (k: WorkstreamKey) => ALL_WORKSTREAMS.find((w) => w.key === k)?.label ?? k.charAt(0).toUpperCase() + k.slice(1);
 
 export const SEVERITY_COLOR: Record<Severity, string> = {
   Critical: 'red',

@@ -6,15 +6,17 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '@/lib/store';
-import { DEMO_TODAY, PHASES, WORKSTREAMS } from '@/lib/meta';
+import { useWorkstreams, useOrgPeople } from '@/lib/hooks';
+import { DEMO_TODAY, PHASES } from '@/lib/meta';
 import { PageHeader } from '@/components/ui';
 import { WorkTable } from '@/components/WorkTable';
 import { WorkItemDrawer } from '@/components/WorkItemDrawer';
 import { NewWorkItemModal } from '@/components/Forms';
-import { PEOPLE } from '@/data/people';
 
 function WorkInner() {
   const { id } = useParams<{ id: string }>();
+  const WS = useWorkstreams(id);
+  const PEOPLE = useOrgPeople();
   const params = useSearchParams();
   const router = useRouter();
   const me = useStore((s) => s.currentUserId);
@@ -70,7 +72,7 @@ function WorkInner() {
             { value: 'all', label: 'All' },
           ]}
         />
-        <Select size="xs" w={160} placeholder="Workstream" clearable data={WORKSTREAMS.map((w) => ({ value: w.key, label: w.label }))} value={ws} onChange={setWs} />
+        <Select size="xs" w={160} placeholder="Workstream" clearable data={WS.map((w) => ({ value: w.key, label: w.label }))} value={ws} onChange={setWs} />
         <Select size="xs" w={150} placeholder="Phase" clearable data={PHASES.map((p) => ({ value: p.key, label: p.short }))} value={phase} onChange={setPhase} />
         <Select size="xs" w={160} placeholder="Owner" clearable searchable data={PEOPLE.map((p) => ({ value: p.id, label: p.name }))} value={owner} onChange={setOwner} />
       </Group>

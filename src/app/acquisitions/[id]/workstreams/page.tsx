@@ -11,7 +11,7 @@ export default function WorkstreamsPage() {
   const { id } = useParams<{ id: string }>();
   const s = useStore();
   const acq = s.acquisitions.find((a) => a.id === id)!;
-  const ws = workstreamProgress(acq, s.work);
+  const ws = workstreamProgress(acq, s.work, s.playbooks.find((p) => p.id === acq.playbookId)?.workstreams ?? []);
   return (
     <Stack gap="md">
       <PageHeader

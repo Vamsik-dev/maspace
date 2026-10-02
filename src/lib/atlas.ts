@@ -1,6 +1,5 @@
 import type { Citation, PhaseKey } from './types';
 import { useStore } from './store';
-import { PRIOR } from '@/data/portfolio';
 import { personById } from '@/data/people';
 import { DEMO_TODAY, phaseShort, wsLabel } from './meta';
 
@@ -184,6 +183,7 @@ export function ask(question: string, acqId: string, s: S = useStore.getState())
   // ---------- memory ----------
   if (has('before', 'prior', 'similar', 'history', 'previous', 'get wrong', 'lesson', 'learn')) {
     const topic = has('concentration', 'customer') ? 'customer concentration' : has('license', 'owner', 'founder') ? 'licensing' : has('system', 'erp', 'software') ? 'integration' : null;
+    const PRIOR = s.priors.filter((p) => p.orgId === acq.orgId);
     const matches = PRIOR.filter((p) => !topic || p.tags.some((t) => t.includes(topic.split(' ')[0])) || p.issues.join(' ').toLowerCase().includes(topic.split(' ')[1] ?? topic));
     const list = matches.length ? matches : PRIOR;
     return ans({

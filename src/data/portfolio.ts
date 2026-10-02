@@ -22,6 +22,8 @@ const basePhases = (current: 'strategy' | 'valuation'): Acquisition['phases'] =>
 
 export const COASTAL: Acquisition = {
   id: 'acq-coastal',
+  orgId: 'org-meridian',
+  playbookId: 'pb-mech',
   codename: 'Project Pelican',
   name: 'Coastal Bend Plumbing',
   status: 'Active',
@@ -62,6 +64,8 @@ export const COASTAL: Acquisition = {
 
 export const DELTA: Acquisition = {
   id: 'acq-delta',
+  orgId: 'org-meridian',
+  playbookId: 'pb-mech',
   codename: 'Project Ember',
   name: 'Delta Fire & Safety',
   status: 'Active',
@@ -167,6 +171,8 @@ export const SECONDARY_ACTIVITY: Activity[] = [
 export const PRIOR: PriorAcquisition[] = [
   {
     id: 'pa-pinecrest',
+    orgId: 'org-meridian',
+    origin: 'Captured',
     name: 'Pinecrest Air',
     industry: 'HVAC',
     location: 'Dallas, TX',
@@ -183,11 +189,13 @@ export const PRIOR: PriorAcquisition[] = [
     lessons: [
       { id: 'l1', text: 'Align technician pay bands before Day 1, not after.', category: 'People', inPlaybook: true },
     ],
-    atDiligence: { top5Pct: 14, recurringPct: 34, techRetentionPct: 79, evMultiple: 5.8 },
+    atDiligence: { top5Pct: 14, recurringPct: 34, techRetentionPct: 79, askMultiple: 5.8 },
     tags: ['retention', 'pay bands'],
   },
   {
     id: 'pa-bluebonnet',
+    orgId: 'org-meridian',
+    origin: 'Captured',
     name: 'Bluebonnet Plumbing',
     industry: 'Plumbing',
     location: 'Fort Worth, TX',
@@ -203,11 +211,13 @@ export const PRIOR: PriorAcquisition[] = [
     lessons: [
       { id: 'l2', text: 'Identify and license a successor qualifier before close where the founder is license holder.', category: 'Legal / Regulatory', inPlaybook: true },
     ],
-    atDiligence: { top5Pct: 18, recurringPct: 19, techRetentionPct: 84, evMultiple: 5.6 },
+    atDiligence: { top5Pct: 18, recurringPct: 19, techRetentionPct: 84, askMultiple: 5.6 },
     tags: ['licensing', 'owner dependency'],
   },
   {
     id: 'pa-gulf',
+    orgId: 'org-meridian',
+    origin: 'Captured',
     name: 'Gulf Coast Fire Protection',
     industry: 'Fire / life safety',
     location: 'Houston, TX',
@@ -223,11 +233,13 @@ export const PRIOR: PriorAcquisition[] = [
     lessons: [
       { id: 'l3', text: 'Treat warranty/callback costs as recurring unless 3 years of evidence say otherwise.', category: 'Financial', inPlaybook: true },
     ],
-    atDiligence: { top5Pct: 21, recurringPct: 44, techRetentionPct: 86, evMultiple: 6.4 },
+    atDiligence: { top5Pct: 21, recurringPct: 44, techRetentionPct: 86, askMultiple: 6.4 },
     tags: ['QoE', 'warranty'],
   },
   {
     id: 'pa-summit',
+    orgId: 'org-meridian',
+    origin: 'Captured',
     name: 'Summit Electrical Services',
     industry: 'Electrical',
     location: 'San Antonio / Austin, TX',
@@ -243,11 +255,13 @@ export const PRIOR: PriorAcquisition[] = [
     lessons: [
       { id: 'l4', text: 'Defer field-service software migration until after the first peak season (≈ month 6).', category: 'Integration', inPlaybook: false },
     ],
-    atDiligence: { top5Pct: 24, recurringPct: 27, techRetentionPct: 82, evMultiple: 6.2 },
+    atDiligence: { top5Pct: 24, recurringPct: 27, techRetentionPct: 82, askMultiple: 6.2 },
     tags: ['integration', 'systems', 'ERP'],
   },
   {
     id: 'pa-redriver',
+    orgId: 'org-meridian',
+    origin: 'Captured',
     name: 'Red River Mechanical',
     industry: 'HVAC / Mechanical',
     location: 'Tyler, TX',
@@ -265,7 +279,7 @@ export const PRIOR: PriorAcquisition[] = [
       { id: 'l5', text: 'Where top-5 > 30%, use contingent consideration tied to top-customer retention.', category: 'Valuation', inPlaybook: false },
       { id: 'l6', text: 'Talk to top customers before signing, not after.', category: 'Commercial', inPlaybook: false },
     ],
-    atDiligence: { top5Pct: 34, recurringPct: 23, techRetentionPct: 74, evMultiple: 6.0 },
+    atDiligence: { top5Pct: 34, recurringPct: 23, techRetentionPct: 74, askMultiple: 6.0 },
     tags: ['customer concentration', 'change of control', 'earn-out'],
   },
 ];

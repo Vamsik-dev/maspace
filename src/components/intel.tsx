@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useState, type ReactNode } from 'react';
 import { notifications } from '@mantine/notifications';
 import type { Acquisition, Proposal } from '@/lib/types';
-import { benchmarks, similarDeals, thesisFit, PLAYBOOK_VERSION } from '@/lib/playbook';
+import { benchmarks, similarDeals, thesisFit } from '@/lib/playbook';
+import { usePlaybook, usePriors } from '@/lib/hooks';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '@/lib/store';
 import { Pill, WhyPopover, personName, CitationChips } from './ui';
@@ -14,7 +15,8 @@ import { Pill, WhyPopover, personName, CitationChips } from './ui';
 const RESULT_COLOR = { Pass: 'teal', Watch: 'yellow', Fail: 'red' } as const;
 
 export function ThesisFit({ acq, compact }: { acq: Acquisition; compact?: boolean }) {
-  const fit = thesisFit(acq);
+  const pb = usePlaybook(acq);
+  const fit = thesisFit(acq, pb);
   if (!fit)
     return (
       <Text size="sm" c="dimmed">
@@ -26,7 +28,7 @@ export function ThesisFit({ acq, compact }: { acq: Acquisition; compact?: boolea
       {!compact && (
         <Group justify="space-between" mb={8}>
           <Text size="xs" c="dimmed">
-            Scored by rule against {PLAYBOOK_VERSION}. Metrics extracted from documents; math done in code.
+            Scored by rule against {pb?.name} {pb?.version}. Metrics extracted from documents; math done in code.
           </Text>
           <Group gap={6}>
             <Pill color="teal">{fit.pass} pass</Pill>
@@ -35,6 +37,25 @@ export function ThesisFit({ acq, compact }: { acq: Acquisition; compact?: boolea
           </Group>
         </Group>
       )}
+      {compact ? (
+        <Stack gap={0}>
+          {fit.rows.map((r) => (
+            <Group key={r.key} justify="space-between" wrap="nowrap" gap="sm" py={7} style={{ borderBottom: '1px solid var(--app-border-soft)' }}>
+              <Box style={{ minWidth: 0 }}>
+                <Text size="sm" lh={1.3}>
+                  {r.label}
+                </Text>
+                <Text size="xs" c="dimmed" className="num">
+                  <b style={{ color: '#0f1b2d' }}>{r.value}</b> · playbook {r.rule}
+                </Text>
+              </Box>
+              <Pill color={RESULT_COLOR[r.result]} solid={r.result === 'Fail'}>
+                {r.result}
+              </Pill>
+            </Group>
+          ))}
+        </Stack>
+      ) : (
       <Box style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5, minWidth: 460 }}>
           <thead>
@@ -69,13 +90,16 @@ export function ThesisFit({ acq, compact }: { acq: Acquisition; compact?: boolea
           </tbody>
         </table>
       </Box>
+      )}
     </Stack>
   );
 }
 
 /** One row per metric: prior deals as dots, their median, and this deal. */
 export function Benchmarks({ acq }: { acq: Acquisition }) {
-  const rows = benchmarks(acq);
+  const pb = usePlaybook(acq);
+  const priors = usePriors(acq.orgId);
+  const rows = benchmarks(acq, pb, priors);
   if (!rows.length) return null;
   return (
     <Stack gap="md">
@@ -124,7 +148,9 @@ export function Benchmarks({ acq }: { acq: Acquisition }) {
 }
 
 export function SimilarDeals({ acq }: { acq: Acquisition }) {
-  const sim = similarDeals(acq);
+  const pb = usePlaybook(acq);
+  const priors = usePriors(acq.orgId);
+  const sim = similarDeals(acq, pb, priors);
   if (!sim.length)
     return (
       <Text size="sm" c="dimmed">

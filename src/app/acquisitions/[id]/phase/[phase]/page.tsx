@@ -227,7 +227,7 @@ function Loi({ acq, s }: { acq: Acquisition; s: S }) {
 }
 
 function Diligence({ acq, s }: { acq: Acquisition; s: S }) {
-  const ws = workstreamProgress(acq, s.work);
+  const ws = workstreamProgress(acq, s.work, s.playbooks.find((p) => p.id === acq.playbookId)?.workstreams ?? []);
   const f = s.findings.filter((x) => x.acqId === acq.id && x.status !== 'Dismissed');
   const by = (sev: string) => f.filter((x) => x.severity === sev && !x.positive).length;
   return (
@@ -359,7 +359,7 @@ function Checklist({ title, items }: { title: string; items: { label: string; do
 function Integration({ acq, s }: { acq: Acquisition; s: S }) {
   const imps = s.findings.filter((f) => f.acqId === acq.id && f.status !== 'Dismissed').flatMap((f) => f.implications.filter((x) => x.area === 'Integration').map((x) => ({ f, x })));
   const decisions = s.decisions.filter((d) => d.acqId === acq.id && d.phase === 'integration');
-  const lessons = PRIOR.flatMap((p) => p.lessons.filter((l) => ['Integration', 'People'].includes(l.category)).map((l) => ({ p, l })));
+  const lessons = s.priors.filter((p) => p.orgId === acq.orgId).flatMap((p) => p.lessons.filter((l) => ['Integration', 'People'].includes(l.category)).map((l) => ({ p, l })));
   return (
     <Stack gap="lg">
       <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
