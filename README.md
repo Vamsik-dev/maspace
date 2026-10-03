@@ -18,6 +18,16 @@ npm run build:share  # one self-contained HTML file (hash routing) → share-dis
 
 Start at **Prototype guide** (`/guide`) for a 10-minute tour and the questions we want answered. Use **Feedback** on any screen to capture notes (stored in the browser, exportable as Markdown). The reset button in the top bar restores the demo to its starting state.
 
+## Deploy to Vercel (password-protected)
+
+The app includes its own password gate (`src/proxy.ts`, `src/app/access/route.ts`), so it works on the free Hobby plan without Vercel's paid password-protection add-on.
+
+1. In Vercel, choose **Add New → Project** and import this GitHub repository. Framework preset: **Next.js** (detected automatically). Keep the default build command (`next build`).
+2. Under **Environment Variables**, add `SITE_PASSWORD` with the password you will give reviewers. Apply it to Production (and Preview if you want previews protected too).
+3. Deploy. Visitors see a "Private preview" page, enter the password, and are remembered on that device for 30 days. Then they choose a persona in the demo sign-in.
+
+To change the password, update `SITE_PASSWORD` and redeploy; existing access cookies stop working. Every response carries `X-Robots-Tag: noindex`. When `SITE_PASSWORD` is not set (local development), the site is open.
+
 ## What's in it
 
 | Area | What the reviewer can do |
