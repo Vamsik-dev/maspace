@@ -66,6 +66,8 @@ export const AUTOMATION_RULES: AutomationRule[] = [
 
 interface State {
   currentUserId: string;
+  /** Prototype sign-in: the marketing site is shown until a demo persona signs in. */
+  signedIn: boolean;
   acquisitions: Acquisition[];
   work: WorkItem[];
   findings: Finding[];
@@ -105,6 +107,8 @@ export interface AnalysisRun {
 
 interface Actions {
   setCurrentUser: (id: string) => void;
+  signIn: (orgId: string, userId: string) => void;
+  signOut: () => void;
   addAcquisition: (a: { name: string; industry: string; hq: string; revenue: number; ebitda: number; strategy: string; thesis: string; rationale?: string }) => string;
   runAnalysis: (acqId: string) => void;
   setOrg: (orgId: string) => void;
@@ -147,6 +151,7 @@ interface Actions {
 
 const seed = (): State => ({
   currentUserId: 'p-marcus',
+  signedIn: false,
   acquisitions: [ABC, COASTAL, DELTA, BROOKFIELD],
   work: [...ABC_WORK, ...SECONDARY_WORK],
   findings: [...ABC_FINDINGS, ...SECONDARY_FINDINGS],
@@ -214,6 +219,8 @@ export const useStore = create<State & Actions>()(
         ...seed(),
         log,
         setCurrentUser: (id) => set({ currentUserId: id }),
+        signIn: (orgId, userId) => set({ currentOrgId: orgId, currentUserId: userId, signedIn: true }),
+        signOut: () => set({ signedIn: false }),
 
         addAcquisition: (x) => {
           const id = nextId('acq');
@@ -813,7 +820,7 @@ export const useStore = create<State & Actions>()(
         toggleRule: (id) => set((s) => ({ rules: s.rules.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)) })),
         addFeedback: (f) => set((s) => ({ feedback: [{ ...f, id: `fb-${s.seq}`, at: new Date().toISOString() }, ...s.feedback], seq: s.seq + 1 })),
         removeFeedback: (id) => set((s) => ({ feedback: s.feedback.filter((f) => f.id !== id) })),
-        reset: () => set((s) => ({ ...seed(), feedback: s.feedback })),
+        reset: () => set((s) => ({ ...seed(), feedback: s.feedback, signedIn: s.signedIn })),
       };
     },
     {

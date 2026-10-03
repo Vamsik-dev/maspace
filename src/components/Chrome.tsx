@@ -1,7 +1,7 @@
 'use client';
 
 import { ActionIcon, Box, Burger, Button, Drawer, Group, Menu, Modal, SegmentedControl, Stack, Text, Textarea, UnstyledButton, Badge, Avatar, Tooltip, ScrollArea } from '@mantine/core';
-import { IconChevronDown, IconMessageCircle, IconRefresh, IconSparkles, IconSearch, IconAlertTriangle, IconGavel, IconFileText, IconBuildingSkyscraper, IconShieldExclamation, IconListCheck, IconFiles } from '@tabler/icons-react';
+import { IconChevronDown, IconMessageCircle, IconRefresh, IconSparkles, IconSearch, IconAlertTriangle, IconGavel, IconFileText, IconBuildingSkyscraper, IconShieldExclamation, IconListCheck, IconFiles, IconWorld, IconLogout } from '@tabler/icons-react';
 import { Spotlight, spotlight, type SpotlightActionData } from '@mantine/spotlight';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -40,6 +40,8 @@ export function UserSwitcher() {
   const me = useStore((s) => s.currentUserId);
   const orgId = useStore((s) => s.currentOrgId);
   const set = useStore((s) => s.setCurrentUser);
+  const signOut = useStore((s) => s.signOut);
+  const router = useRouter();
   const p = personById(me)!;
   return (
     <Menu position="bottom-end" width={290} shadow="md">
@@ -84,6 +86,13 @@ export function UserSwitcher() {
             </Menu.Item>
           ))}
         </ScrollArea.Autosize>
+        <Menu.Divider />
+        <Menu.Item leftSection={<IconWorld size={14} />} onClick={() => router.push('/welcome')}>
+          Product site
+        </Menu.Item>
+        <Menu.Item leftSection={<IconLogout size={14} />} onClick={() => { signOut(); router.push('/'); }}>
+          Sign out
+        </Menu.Item>
       </Menu.Dropdown>
     </Menu>
   );

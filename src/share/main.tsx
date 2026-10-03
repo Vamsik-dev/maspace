@@ -18,6 +18,7 @@ import Memory from '@/app/memory/page';
 import Guide from '@/app/guide/page';
 import Feedback from '@/app/feedback/page';
 import Workspace from '@/app/acquisitions/[id]/layout';
+import Welcome from '@/app/welcome/page';
 import Overview from '@/app/acquisitions/[id]/page';
 import Atlas from '@/app/acquisitions/[id]/atlas/page';
 import Phase from '@/app/acquisitions/[id]/phase/[phase]/page';
@@ -51,6 +52,7 @@ const TOP: [string, ComponentType][] = [
   ['/new', NewAcq],
   ['/playbooks', Playbooks],
   ['/pipeline', Pipeline],
+  ['/welcome', Welcome],
 ];
 const DEAL: [string, ComponentType][] = [
   ['', Overview],
