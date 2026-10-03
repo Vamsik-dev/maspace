@@ -31,6 +31,8 @@ export function useDeliverableStatus(acq: Acquisition): Record<string, Status> {
   const exclusivity = ms(/exclusivity/i);
   const spa = ms(/SPA|definitive/i);
   return {
+    'loi-terms': acq.loiTerms ? { label: acq.loiTerms.status === 'Signed' ? 'Done' : 'In progress', detail: `$${acq.loiTerms.ev.toFixed(1)}M EV · ${acq.loiTerms.status.toLowerCase()}`, href: `${base}/phase/loi` } : { label: 'Not started', detail: 'Atlas can draft from the playbook', href: `${base}/phase/loi` },
+    protections: s.findings.some((f) => f.acqId === acq.id && (f.severity === 'High' || f.severity === 'Critical') && f.status !== 'Dismissed' && f.status !== 'Proposed') ? { label: ph('agreement') === 'complete' ? 'Done' : 'In progress', detail: 'Finding → protection map', href: `${base}/phase/agreement` } : { label: 'Not started' },
     'target-list': { label: 'Done', detail: 'On the target pipeline', href: '/pipeline' },
     thesis: dl('Investment Thesis') ? fromDl('Investment Thesis') : acq.thesis.summary ? { label: 'In progress', detail: `${acq.thesis.assumptions.length} testable assumptions`, href: `${base}/phase/strategy`, generate: 'Investment Thesis' } : { label: 'Not started', generate: 'Investment Thesis' },
     teaser: docs.some((d) => d.category === 'CIM') ? { label: 'Done', detail: 'CIM in documents', href: `${base}/documents` } : { label: 'Not started', detail: 'Request CIM after NDA' },

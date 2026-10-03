@@ -15,6 +15,7 @@ const TYPES: { type: Deliverable['type']; desc: string; phase: string }[] = [
   { type: 'Investment Thesis', desc: 'Why we are buying, criteria and synergy hypotheses.', phase: '1 · Strategy' },
   { type: 'Target Brief', desc: 'Profile, strategic fit and initial questions.', phase: '1 · Strategy' },
   { type: 'IOI Letter', desc: 'Non-binding indication of interest with valuation range and structure.', phase: '2 · Valuation & IOI' },
+  { type: 'Letter of Intent', desc: 'Generated from the structured LOI terms.', phase: '3 · LOI' },
   { type: 'Management Meeting Brief', desc: 'Issues to clarify, questions and lessons from prior deals.', phase: '2–4' },
   { type: 'Due Diligence Report', desc: 'Findings by workstream with sources.', phase: '4 · Due Diligence' },
   { type: 'IC Memo', desc: 'Transaction, thesis, valuation, findings, risks and decisions required.', phase: '6 · Approvals' },

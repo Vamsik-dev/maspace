@@ -194,6 +194,34 @@ export function generate(type: Deliverable['type'], acqId: string, s: S): Block[
     ];
   }
 
+  if (type === 'Letter of Intent') {
+    const lt = acq.loiTerms;
+    if (!lt) return [disclaimer, h(1, `Letter of Intent — ${acq.name}`), p('Draft LOI terms on the LOI phase page first; the letter is generated from them.')];
+    return [
+      disclaimer,
+      h(1, `Letter of Intent — ${acq.name}`),
+      p(i('Non-binding except for exclusivity, confidentiality and expenses. Draft for review by counsel.')),
+      h(2, '1. Transaction'),
+      p(`${lt.structure} of ${t.legalName}.`),
+      h(2, '2. Purchase price'),
+      p(`Enterprise value of $${lt.ev.toFixed(1)}M on a cash-free, debt-free basis with a normalized level of net working capital (${lt.nwcPeg.toLowerCase()}).`),
+      table([
+        ['Component', 'Amount'],
+        ['Cash at closing', `$${lt.cashAtClose.toFixed(1)}M`],
+        ['Seller note', lt.sellerNote ? `$${lt.sellerNote.toFixed(1)}M` : '—'],
+        ['Earn-out (maximum)', lt.earnoutMax ? `$${lt.earnoutMax.toFixed(1)}M` : '—'],
+        ['Equity rollover', lt.rolloverPct ? `${lt.rolloverPct}%` : '—'],
+      ]),
+      ...(lt.earnoutMax ? [p(b('Earn-out: '), lt.earnoutBasis)] : []),
+      h(2, '3. Management'),
+      p(lt.managementRetention),
+      h(2, '4. Exclusivity and timing'),
+      p(`Exclusivity of ${lt.exclusivityDays} days from signing. Confirmatory diligence expected within ${lt.diligenceDays} days.`),
+      h(2, '5. Conditions'),
+      ...lt.conditions.filter((c) => c.trim()).map((c) => li(c)),
+    ];
+  }
+
   if (type === 'IOI Letter') {
     const lo = Math.round(acq.target.ebitda * 5.5 * 10) / 10;
     const hi = Math.round(acq.target.ebitda * 6.5 * 10) / 10;

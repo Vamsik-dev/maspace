@@ -120,6 +120,7 @@ export interface Acquisition {
   /** Initial diligence request list status (items not tracked individually as work items). */
   requestList?: Partial<Record<WorkstreamKey, { done: number; total: number }>>;
   metrics?: TargetMetrics;
+  loiTerms?: LoiTerms;
   /** One line on why the team is interested, entered at creation. */
   rationale?: string;
   team: TeamMember[];
@@ -259,7 +260,7 @@ export interface Deliverable {
   id: string;
   acqId: string;
   title: string;
-  type: 'Investment Thesis' | 'Target Brief' | 'IOI Letter' | 'Management Meeting Brief' | 'Due Diligence Report' | 'IC Memo' | 'Weekly Deal Update' | 'Day 1 Plan' | '100-Day Plan';
+  type: 'Investment Thesis' | 'Target Brief' | 'IOI Letter' | 'Letter of Intent' | 'Management Meeting Brief' | 'Due Diligence Report' | 'IC Memo' | 'Weekly Deal Update' | 'Day 1 Plan' | '100-Day Plan';
   status: 'Draft' | 'In Review' | 'Final';
   ownerId: string;
   generatedAt: string;
@@ -454,4 +455,24 @@ export interface QAItem {
   answeredAt?: string;
   findingId?: string;
   draftedBy?: string;
+}
+
+/** Structured LOI / term sheet. Makes offers comparable and feeds the LOI document. */
+export interface LoiTerms {
+  status: 'Draft' | 'Sent' | 'Signed';
+  signedOn?: string;
+  structure: 'Equity purchase (SPA)' | 'Asset purchase (APA)' | 'Merger';
+  ev: number; // $M, cash-free / debt-free
+  cashAtClose: number;
+  sellerNote: number;
+  earnoutMax: number;
+  earnoutBasis: string;
+  rolloverPct: number;
+  nwcPeg: string;
+  exclusivityDays: number;
+  diligenceDays: number;
+  managementRetention: string;
+  conditions: string[];
+  /** Why Atlas proposed each field, when it drafted the terms. */
+  basis?: Partial<Record<keyof Omit<LoiTerms, 'basis' | 'status' | 'signedOn' | 'conditions'>, string>>;
 }

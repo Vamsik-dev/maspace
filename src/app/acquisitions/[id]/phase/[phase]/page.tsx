@@ -13,6 +13,7 @@ import { Claim, Section, StatusBadge, SeverityBadge, Meter, Empty, personName, W
 import { WorkTable } from '@/components/WorkTable';
 import { WorkItemDrawer } from '@/components/WorkItemDrawer';
 import { PhaseDeliverables } from '@/components/PhaseDeliverables';
+import { LoiTermsPanel } from '@/components/LoiTerms';
 import type { Acquisition, PhaseKey } from '@/lib/types';
 import { PRIOR } from '@/data/portfolio';
 
@@ -289,7 +290,54 @@ function Agreement({ acq, s }: { acq: Acquisition; s: S }) {
                     : 'To be determined';
       return { f, protection };
     });
+  const t = acq.loiTerms;
+  const doc = t?.structure === 'Asset purchase (APA)' ? 'APA' : 'SPA';
+  const ev = t?.ev ?? acq.ev;
+  const terms: { term: string; position: string; why: string }[] = [
+    { term: 'Representations & warranties', position: 'Full financial-statement reps on the QoE-adjusted basis; customer-contract, licensing and tax reps', why: 'QoE adjustments and the sales-tax finding' },
+    { term: 'MAC (material adverse change)', position: 'Buyer walk right if a top-5 customer gives notice before close', why: 'Customer concentration finding' },
+    { term: 'Indemnification', position: `Cap 10% of EV ($${(ev * 0.1).toFixed(1)}M); basket 0.75% (deductible); fundamental reps to purchase price`, why: 'Market norm at this size; playbook default' },
+    { term: 'Escrow / holdback', position: `General escrow $${(ev * 0.05).toFixed(1)}M for 18 months + $150K specific sales-tax escrow`, why: 'Sales-tax exposure; prior-deal lesson' },
+    { term: 'Survival', position: 'General reps 18 months; tax reps statute of limitations + 60 days', why: 'Tax exposure spans open years' },
+    { term: 'Non-compete / non-solicit', position: '5 years, Texas, founder and selling shareholders', why: 'Founder dependency finding' },
+    { term: 'Purchase price adjustment', position: `NWC peg ${t?.nwcPeg ?? 'to be set from the QoE'}; dollar-for-dollar true-up 90 days post-close`, why: 'QoE working capital analysis' },
+    { term: 'R&W insurance', position: 'Evaluate quote; would reduce escrow to 1% retention', why: 'Open question for the CFO' },
+  ];
   return (
+    <Stack gap="lg">
+    <Section title={`Deal protections (${doc})`} pad={false}>
+      <Table>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th w={210}>Term</Table.Th>
+            <Table.Th>Proposed position</Table.Th>
+            <Table.Th w={240}>Driven by</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {terms.map((r) => (
+            <Table.Tr key={r.term}>
+              <Table.Td>
+                <Text size="sm" fw={500}>
+                  {r.term}
+                </Text>
+              </Table.Td>
+              <Table.Td>
+                <Text size="sm">{r.position}</Text>
+              </Table.Td>
+              <Table.Td>
+                <Text size="xs" c="dimmed">
+                  {r.why}
+                </Text>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+      <Text size="xs" c="dimmed" p="sm">
+        Recommendation drafted by Atlas from findings, the signed LOI and the playbook; counsel negotiates the final positions.
+      </Text>
+    </Section>
     <Section title="From diligence to the SPA" pad={false}>
       <Table>
         <Table.Thead>
@@ -324,6 +372,7 @@ function Agreement({ acq, s }: { acq: Acquisition; s: S }) {
         Drafted by counsel; mapping shown so the deal team can see every material finding has a contractual answer.
       </Text>
     </Section>
+    </Stack>
   );
 }
 
@@ -475,6 +524,11 @@ export default function PhasePage() {
           </Text>
           <Text fz={24} fw={650}>
             {meta.label}
+            {meta.aka && (
+              <Text span fz={13} c="dimmed" fw={500} ml={8}>
+                also called {meta.aka}
+              </Text>
+            )}
           </Text>
           <Text size="sm" c="dimmed">
             {meta.purpose}
@@ -519,6 +573,7 @@ export default function PhasePage() {
 
       {phase === 'strategy' && <Strategy acq={acq} />}
       {phase === 'valuation' && <Valuation acq={acq} s={s} />}
+      {phase === 'loi' && <LoiTermsPanel acq={acq} />}
       {phase === 'loi' && <Loi acq={acq} s={s} />}
       {phase === 'diligence' && <Diligence acq={acq} s={s} />}
       {phase === 'agreement' && isAbc && <Agreement acq={acq} s={s} />}
@@ -533,6 +588,8 @@ export default function PhasePage() {
               { label: 'Board notification', done: false },
               { label: 'Antitrust / HSR: confirm whether a filing is required (size-of-transaction test)', done: false, note: 'Likely below threshold at this deal size; counsel to confirm' },
               { label: 'Third-party consents (customer contracts, licenses)', done: false, href: `/acquisitions/${id}/decisions/dec-consent` },
+              { label: 'CFIUS review', done: true, note: 'Not applicable: domestic buyer and target' },
+              { label: 'Shareholder vote', done: true, note: 'Not required: private target, written consent of sellers' },
             ]}
           />
           <Checklist
@@ -541,6 +598,8 @@ export default function PhasePage() {
               { label: 'Acquisition facility draw request', done: true, note: '$16.0M draw on existing facility' },
               { label: 'Lender credit memo updated for revised price', done: false, href: `/acquisitions/${id}/work?item=w-lender` },
               { label: 'Leverage covenant headroom confirmed', done: false, note: 'Pro forma 2.9x vs 3.5x covenant (est.)' },
+              { label: 'Debt commitment letter (incremental term loan) signed', done: false, note: 'Needed only if the draw exceeds the existing facility' },
+              { label: 'Equity funding documents (sponsor equity / rollover)', done: false, note: 'Seller note and any rollover documented in the SPA' },
             ]}
           />
         </SimpleGrid>
@@ -556,6 +615,10 @@ export default function PhasePage() {
             { label: 'Payoff letters for existing debt', done: false },
             { label: 'Funds flow memo approved by CFO', done: false },
             { label: 'Insurance binders effective at close', done: false },
+            { label: 'All conditions precedent satisfied or waived (bring-down certificate)', done: false },
+            { label: 'Funds wired per funds flow (seller, lender payoff, escrow agent, fees)', done: false },
+            { label: 'Shares transferred; stock certificates and resignations delivered', done: false },
+            { label: 'Announcements: employees, customers, suppliers (Day 1 comms)', done: false, href: `/acquisitions/${id}/deliverables` },
           ]}
         />
       )}

@@ -14,6 +14,25 @@ import { Pill, WhyPopover, personName, CitationChips } from './ui';
 
 const RESULT_COLOR = { Pass: 'teal', Watch: 'yellow', Fail: 'red' } as const;
 
+/** Verified when any cited source is an advisor report or internal system; seller-stated when only seller documents back it. */
+function Provenance({ sources }: { sources: { docId: string }[] }) {
+  const docs = useStore(useShallow((s) => s.documents.filter((d) => sources.some((c) => c.docId === d.id))));
+  if (!docs.length) return null;
+  const verified = docs.some((d) => d.source === 'Advisor' || d.source === 'Internal');
+  return (
+    <Tooltip
+      withArrow
+      multiline
+      w={260}
+      label={verified ? 'Backed by an advisor report or source-system extract.' : 'Only seller documents back this figure (CIM, management accounts). Verify in diligence.'}
+    >
+      <span>
+        <Pill color={verified ? 'teal' : 'gray'}>{verified ? 'Verified' : 'Seller-stated'}</Pill>
+      </span>
+    </Tooltip>
+  );
+}
+
 export function ThesisFit({ acq, compact }: { acq: Acquisition; compact?: boolean }) {
   const pb = usePlaybook(acq);
   const fit = thesisFit(acq, pb);
@@ -75,6 +94,7 @@ export function ThesisFit({ acq, compact }: { acq: Acquisition; compact?: boolea
                   <Group gap={4} wrap="nowrap">
                     {r.value}
                     {r.sources.length > 0 && <WhyPopover acqId={acq.id} citations={r.sources} label="" />}
+                    <Provenance sources={r.sources} />
                   </Group>
                 </td>
                 <td style={{ padding: '8px', color: '#5b6b82' }} className="num">

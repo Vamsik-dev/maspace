@@ -23,6 +23,7 @@ import type {
   PipelineTarget,
   PipelineStage,
   QAItem,
+  LoiTerms,
   PhaseKey,
   Risk,
   WorkItem,
@@ -115,6 +116,7 @@ interface Actions {
   addQA: (q: Omit<QAItem, 'id' | 'askedAt' | 'askedBy'>) => void;
   updateQA: (id: string, patch: Partial<QAItem>) => void;
   draftQAFromFindings: (acqId: string) => number;
+  setLoiTerms: (acqId: string, terms: LoiTerms) => void;
   acceptProposal: (id: string) => void;
   dismissProposal: (id: string) => void;
   acceptChain: (findingId: string) => void;
@@ -295,6 +297,12 @@ export const useStore = create<State & Actions>()(
           const q = get().qa.find((x) => x.id === id);
           set((s) => ({ qa: s.qa.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
           if (q && patch.status && patch.status !== q.status) log({ acqId: q.acqId, actor: get().currentUserId, kind: 'work', text: `marked a Q&A item ${patch.status.toLowerCase()}: "${q.question.slice(0, 60)}…"` });
+        },
+        setLoiTerms: (acqId, terms) => {
+          const before = get().acquisitions.find((a) => a.id === acqId)?.loiTerms;
+          set((s) => ({ acquisitions: s.acquisitions.map((a) => (a.id === acqId ? { ...a, loiTerms: terms } : a)) }));
+          if (!before) log({ acqId, actor: get().currentUserId, kind: 'phase', text: `drafted structured LOI terms ($${terms.ev.toFixed(1)}M EV)` });
+          else if (before.status !== terms.status) log({ acqId, actor: get().currentUserId, kind: 'phase', text: `marked LOI terms ${terms.status.toLowerCase()}` });
         },
         draftQAFromFindings: (acqId) => {
           const asked = new Set(get().qa.filter((q) => q.acqId === acqId).map((q) => q.findingId));
