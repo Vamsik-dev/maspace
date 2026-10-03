@@ -181,7 +181,7 @@ export default function PlaybooksPage() {
                   ))}
                 </SimpleGrid>
                 <Text size="xs" c="dimmed" mt="sm">
-                  Atlas compares each data room against this list and drafts seller requests for what is missing.
+                  Atlas compares each data room against this list and drafts information requests for what is missing.
                 </Text>
               </Section>
             </Stack>

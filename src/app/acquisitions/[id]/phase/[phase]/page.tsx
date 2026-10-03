@@ -12,6 +12,7 @@ import { workstreamProgress } from '@/lib/derive';
 import { Claim, Section, StatusBadge, SeverityBadge, Meter, Empty, personName, WhyPopover } from '@/components/ui';
 import { WorkTable } from '@/components/WorkTable';
 import { WorkItemDrawer } from '@/components/WorkItemDrawer';
+import { PhaseDeliverables } from '@/components/PhaseDeliverables';
 import type { Acquisition, PhaseKey } from '@/lib/types';
 import { PRIOR } from '@/data/portfolio';
 
@@ -397,7 +398,7 @@ function Integration({ acq, s }: { acq: Acquisition; s: S }) {
             )}
             {acq.id === 'acq-abc' && (
               <Button component={Link} href={`/acquisitions/${acq.id}/deliverables/dl-day1`} variant="light" mt="sm" w="fit-content" rightSection={<IconArrowRight size={13} />}>
-                Open Day-1 integration plan
+                Open Day 1 plan
               </Button>
             )}
           </Stack>
@@ -508,6 +509,8 @@ export default function PhasePage() {
         </Group>
       </Group>
 
+      <PhaseDeliverables acq={acq} phase={phase} />
+
       {phase === 'loi' && ph.status === 'active' && !acq.requestList && (
         <Text size="xs" c="dimmed" mt={-8}>
           Workflow: recording the LOI as signed creates the 9 standard diligence workstreams and the initial request list.
@@ -528,6 +531,8 @@ export default function PhasePage() {
               { label: 'CEO approval of price revision', done: s.decisions.find((d) => d.id === 'dec-price')?.status === 'Approved', href: `/acquisitions/${id}/decisions/dec-price` },
               { label: 'Investment Committee approval (Oct 14)', done: false, href: `/acquisitions/${id}/deliverables/dl-ic` },
               { label: 'Board notification', done: false },
+              { label: 'Antitrust / HSR: confirm whether a filing is required (size-of-transaction test)', done: false, note: 'Likely below threshold at this deal size; counsel to confirm' },
+              { label: 'Third-party consents (customer contracts, licenses)', done: false, href: `/acquisitions/${id}/decisions/dec-consent` },
             ]}
           />
           <Checklist

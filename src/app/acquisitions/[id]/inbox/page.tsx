@@ -34,7 +34,7 @@ export default function InboxPage() {
     <Stack gap="md">
       <PageHeader
         eyebrow="Human review"
-        title="Atlas review queue"
+        title="Review queue"
         description="Everything Atlas found or drafted for this acquisition, waiting for a person. Accepted items become findings, risks, decisions or assigned work; dismissed items are kept in the audit trail."
         right={
           <Group gap="xs">
@@ -47,7 +47,7 @@ export default function InboxPage() {
         {[
           ['Proposed findings', findings.length],
           ['Linked items drafted', chained.length],
-          ['Seller requests drafted', requests.length],
+          ['Information requests drafted', requests.length],
           ['Other proposals', pendingStandalone.length - requests.length],
         ].map(([k, v]) => (
           <Box key={k as string} className="panel" p="md">
@@ -132,7 +132,7 @@ export default function InboxPage() {
               variant="light"
               onClick={() => {
                 requests.forEach((r) => acceptProposal(r.id));
-                notifications.show({ message: `${requests.length} requests added to the seller request list.`, color: 'ink' });
+                notifications.show({ message: `${requests.length} requests added to the request list.`, color: 'ink' });
               }}
             >
               Add all {requests.length} requests

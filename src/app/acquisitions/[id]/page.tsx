@@ -158,7 +158,7 @@ export default function OverviewPage() {
               </>
             )}
           </BriefRow>
-          <BriefRow icon={<IconHistory size={16} color="#4b5a70" />} tone="#f1f4f9" title="Based on your playbook" href={`${base}/research`} cta="Thesis fit">
+          <BriefRow icon={<IconHistory size={16} color="#4b5a70" />} tone="#f1f4f9" title="Based on your playbook" href={`${base}/research`} cta="Playbook fit">
             {fit ? (
               <>
                 <b>{fit.fail} of {fit.rows.length} criteria fail</b> {fit.watch ? `and ${fit.watch} need watching ` : ''}against {pb?.name} {pb?.version}.
@@ -319,7 +319,7 @@ export default function OverviewPage() {
                 </Stack>
               </Section>
               <Section
-                title={acq.metrics ? 'Playbook fit' : 'Thesis tracker'}
+                title={acq.metrics ? 'Playbook fit' : 'Investment thesis'}
                 right={
                   <Anchor component={Link} href={`${base}/phase/strategy`} size="xs">
                     Thesis

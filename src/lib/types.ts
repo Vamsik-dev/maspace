@@ -259,7 +259,7 @@ export interface Deliverable {
   id: string;
   acqId: string;
   title: string;
-  type: 'IC Memo' | 'Target Brief' | 'Management Meeting Brief' | 'Weekly Deal Update' | 'Day-1 Integration Plan' | 'Diligence Summary';
+  type: 'Investment Thesis' | 'Target Brief' | 'IOI Letter' | 'Management Meeting Brief' | 'Due Diligence Report' | 'IC Memo' | 'Weekly Deal Update' | 'Day 1 Plan' | '100-Day Plan';
   status: 'Draft' | 'In Review' | 'Final';
   ownerId: string;
   generatedAt: string;
@@ -413,4 +413,45 @@ export interface SellerClaim {
   verdict: 'Verified' | 'Contradicted' | 'Partly true' | 'Unverified';
   evidence: string;
   evidenceSources: Citation[];
+}
+
+// ---------- Phase 1 sourcing and Phase 4 Q&A ----------
+
+export type PipelineStage = 'Long list' | 'Short list' | 'NDA signed' | 'CIM received' | 'Passed';
+
+/** A candidate target before it becomes an acquisition. */
+export interface PipelineTarget {
+  id: string;
+  orgId: string;
+  name: string;
+  industry: string;
+  hq: string;
+  source: 'Banker teaser' | 'Proprietary outreach' | 'Referral' | 'Inbound';
+  stage: PipelineStage;
+  revenue?: number;
+  ebitda?: number;
+  /** Metrics known from the teaser or outreach, keyed by playbook criterion. */
+  teaser: Record<string, number | string>;
+  ownerId: string;
+  nextStep: string;
+  note?: string;
+  passReason?: string;
+  acquisitionId?: string;
+  /** Uses the organization's sample data room when promoted (demo). */
+  hasSample?: boolean;
+}
+
+export interface QAItem {
+  id: string;
+  acqId: string;
+  question: string;
+  workstream: string;
+  askedOf: 'Seller' | 'Management' | 'Banker';
+  askedBy: string;
+  status: 'Draft' | 'Sent' | 'Answered' | 'Follow-up';
+  askedAt: string;
+  answer?: string;
+  answeredAt?: string;
+  findingId?: string;
+  draftedBy?: string;
 }

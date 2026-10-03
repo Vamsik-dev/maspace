@@ -2,8 +2,8 @@
 
 import { Box, Button, Checkbox, Group, NumberInput, Select, SimpleGrid, Stack, Stepper, Text, TextInput, Textarea, FileButton, Table } from '@mantine/core';
 import { IconArrowRight, IconSparkles, IconUpload, IconShieldCheck } from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
 import { TopBar } from '@/components/Chrome';
 import { PageHeader, DocIcon, Section } from '@/components/ui';
 import { useStore } from '@/lib/store';
@@ -31,23 +31,29 @@ const BOUNDARY: [string, string, string][] = [
   ['Make deal, valuation and risk decisions', 'You', 'Recorded with rationale'],
 ];
 
-export default function NewAcquisitionPage() {
+function NewAcquisitionInner() {
   const router = useRouter();
   const org = useOrg();
   const pb = useOrgPlaybook();
   const SAMPLE = SAMPLES[org.id];
   const LS_DEFAULTS = SAMPLE.defaults;
   const LS_DOCS = SAMPLE.docs;
+  const params = useSearchParams();
+  const fromId = params.get('from');
+  const fromTarget = useStore((s) => s.pipeline.find((t) => t.id === fromId));
+  const linkPipeline = useStore((s) => s.linkPipeline);
   const add = useStore((s) => s.addAcquisition);
   const run = useStore((s) => s.runAnalysis);
   const [step, setStep] = useState(0);
-  const [sample, setSample] = useState(true);
+  const [sample, setSample] = useState(!fromTarget || !!fromTarget.hasSample);
   const [ownFiles, setOwnFiles] = useState<File[]>([]);
-  const [v, setV] = useState({ name: '', industry: INDUSTRIES[org.id][0], hq: '', revenue: '' as number | string, ebitda: '' as number | string, rationale: '', strategy: STRATEGIES[0] });
+  const prefill = fromTarget?.hasSample ? LS_DEFAULTS : fromTarget ? { name: fromTarget.name, industry: fromTarget.industry, hq: fromTarget.hq, revenue: fromTarget.revenue ?? '', ebitda: fromTarget.ebitda ?? '', rationale: fromTarget.note ?? '' } : null;
+  const [v, setV] = useState({ name: '', industry: INDUSTRIES[org.id][0], hq: '', revenue: '' as number | string, ebitda: '' as number | string, rationale: '', strategy: STRATEGIES[0], ...(prefill ?? {}) } as { name: string; industry: string; hq: string; revenue: number | string; ebitda: number | string; rationale: string; strategy: string });
   const valid = v.name.trim() && v.hq.trim() && Number(v.revenue) > 0 && Number(v.ebitda) > 0;
 
   const create = () => {
     const id = add({ name: v.name, industry: v.industry, hq: v.hq, revenue: Number(v.revenue), ebitda: Number(v.ebitda), strategy: v.strategy, thesis: v.rationale || v.strategy, rationale: v.rationale });
+    if (fromTarget) linkPipeline(fromTarget.id, id);
     if (sample) {
       run(id);
       router.push(`/acquisitions/${id}/intake`);
@@ -187,5 +193,13 @@ export default function NewAcquisitionPage() {
         )}
       </Box>
     </Box>
+  );
+}
+
+export default function NewAcquisitionPage() {
+  return (
+    <Suspense>
+      <NewAcquisitionInner />
+    </Suspense>
   );
 }

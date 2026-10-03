@@ -232,7 +232,8 @@ export function TopBar({ acqId }: { acqId?: string }) {
   const fbCount = useStore((s) => s.feedback.length);
   const [menu, setMenu] = useState(false);
   const nav = [
-    { href: '/', label: 'Portfolio', active: path === '/' || path.startsWith('/acquisitions') },
+    { href: '/', label: 'Portfolio', active: path === '/' || path.startsWith('/acquisitions') || path.startsWith('/new') },
+    { href: '/pipeline', label: 'Pipeline', active: path.startsWith('/pipeline') },
     { href: '/memory', label: 'Memory', active: path.startsWith('/memory') },
     { href: '/playbooks', label: 'Playbooks', active: path.startsWith('/playbooks') },
     { href: '/guide', label: 'Guide', active: path.startsWith('/guide') },

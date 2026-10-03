@@ -186,7 +186,7 @@ const KIND_META: Record<Proposal['kind'], { label: string; icon: ReactNode; acce
   risk: { label: 'Risk', icon: <IconShieldExclamation size={15} />, accept: 'Add to risk register' },
   decision: { label: 'Decision', icon: <IconGavel size={15} />, accept: 'Open decision' },
   action: { label: 'Action', icon: <IconListCheck size={15} />, accept: 'Assign' },
-  request: { label: 'Seller request', icon: <IconInbox size={15} />, accept: 'Add to request list' },
+  request: { label: 'Information request', icon: <IconInbox size={15} />, accept: 'Add to request list' },
   deliverable: { label: 'Deliverable update', icon: <IconFileText size={15} />, accept: 'Regenerate' },
   research: { label: 'External research', icon: <IconWorld size={15} />, accept: 'Record as finding' },
   playbook: { label: 'Playbook change', icon: <IconBook2 size={15} />, accept: 'Adopt' },

@@ -40,6 +40,8 @@ import Research from '@/app/acquisitions/[id]/research/page';
 import Intake from '@/app/acquisitions/[id]/intake/page';
 import NewAcq from '@/app/new/page';
 import Playbooks from '@/app/playbooks/page';
+import Pipeline from '@/app/pipeline/page';
+import QA from '@/app/acquisitions/[id]/qa/page';
 
 const TOP: [string, ComponentType][] = [
   ['/', Portfolio],
@@ -48,6 +50,7 @@ const TOP: [string, ComponentType][] = [
   ['/feedback', Feedback],
   ['/new', NewAcq],
   ['/playbooks', Playbooks],
+  ['/pipeline', Pipeline],
 ];
 const DEAL: [string, ComponentType][] = [
   ['', Overview],
@@ -68,6 +71,7 @@ const DEAL: [string, ComponentType][] = [
   ['/team', Team],
   ['/activity', Activity],
   ['/inbox', Inbox],
+  ['/qa', QA],
   ['/research', Research],
   ['/intake', Intake],
 ];

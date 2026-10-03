@@ -48,7 +48,7 @@ export default function IntakePage() {
           !running && (
             <Group gap="xs">
               <Button component={Link} href={`/acquisitions/${id}/research`} variant="default">
-                Thesis fit & research
+                Playbook fit & research
               </Button>
               <Button component={Link} href={`/acquisitions/${id}/inbox`} rightSection={<IconArrowRight size={14} />}>
                 Review {proposed.length + requests} items

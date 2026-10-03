@@ -34,7 +34,7 @@ export default function ResearchPage() {
         value={tab}
         onChange={setTab}
         data={[
-          { value: 'fit', label: 'Thesis fit & benchmarks' },
+          { value: 'fit', label: 'Playbook fit & benchmarks' },
           { value: 'claims', label: `Seller claims (${claims.length})` },
           { value: 'external', label: `External research (${research.length})` },
         ]}

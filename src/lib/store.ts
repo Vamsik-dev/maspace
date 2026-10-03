@@ -20,6 +20,9 @@ import type {
   Playbook,
   PriorAcquisition,
   CriterionTest,
+  PipelineTarget,
+  PipelineStage,
+  QAItem,
   PhaseKey,
   Risk,
   WorkItem,
@@ -44,6 +47,7 @@ import { SAMPLES } from '@/data/samples';
 import { ORGS, PLAYBOOKS } from '@/data/playbooks';
 import { BROOKFIELD, HALCYON_PRIOR } from '@/data/healthcare';
 import { ARCHIVES } from '@/data/archive';
+import { ABC_QA, PIPELINE } from '@/data/pipeline';
 import { PEOPLE } from '@/data/people';
 import { assumptionsFrom, evaluate, similarDeals, statusFor } from './playbook';
 import { PRIOR } from '@/data/portfolio';
@@ -56,7 +60,7 @@ export const AUTOMATION_RULES: AutomationRule[] = [
   { id: 'rule-finding', when: 'A High or Critical finding is created', then: 'Create a review work item for the workstream reviewer and notify the risk owner', enabled: true },
   { id: 'rule-decision', when: 'A decision is approved', then: 'Create follow-up actions for each downstream impact and update linked risks to Mitigating', enabled: true },
   { id: 'rule-doc', when: 'A document finishes processing', then: 'Ask Atlas to check it against open findings and thesis assumptions; propose findings for human review', enabled: true },
-  { id: 'rule-ic', when: 'IC approves the deal', then: 'Create the closing checklist and Day-1 readiness workstream', enabled: true },
+  { id: 'rule-ic', when: 'IC approves the deal', then: 'Create the closing checklist and Day 1 readiness workstream', enabled: true },
 ];
 
 interface State {
@@ -83,6 +87,8 @@ interface State {
   playbooks: Playbook[];
   priors: PriorAcquisition[];
   archive: Record<string, { status: 'idle' | 'running' | 'review'; log: string[]; pending: string[]; confirmed: string[] }>;
+  pipeline: PipelineTarget[];
+  qa: QAItem[];
   seq: number;
 }
 
@@ -104,6 +110,11 @@ interface Actions {
   updateCriterion: (playbookId: string, key: string, test: CriterionTest) => void;
   importArchive: (orgId: string) => void;
   confirmArchived: (dealId: string, accept: boolean) => void;
+  movePipeline: (id: string, stage: PipelineStage, passReason?: string) => void;
+  linkPipeline: (id: string, acqId: string) => void;
+  addQA: (q: Omit<QAItem, 'id' | 'askedAt' | 'askedBy'>) => void;
+  updateQA: (id: string, patch: Partial<QAItem>) => void;
+  draftQAFromFindings: (acqId: string) => number;
   acceptProposal: (id: string) => void;
   dismissProposal: (id: string) => void;
   acceptChain: (findingId: string) => void;
@@ -155,6 +166,8 @@ const seed = (): State => ({
   playbooks: PLAYBOOKS,
   priors: [...PRIOR, ...HALCYON_PRIOR],
   archive: {},
+  pipeline: PIPELINE,
+  qa: ABC_QA,
   seq: 1,
 });
 
@@ -269,6 +282,38 @@ export const useStore = create<State & Actions>()(
             const cur = get().archive[orgId];
             put({ status: 'review', log: [...cur.log, `Done. ${arc.deals.length} acquisitions ready for your confirmation before they enter memory.`] });
           }, 900 * (arc.deals.length + 1));
+        },
+
+        movePipeline: (id, stage, passReason) => set((s) => ({ pipeline: s.pipeline.map((t) => (t.id === id ? { ...t, stage, passReason: passReason ?? t.passReason } : t)) })),
+        linkPipeline: (id, acqId) => set((s) => ({ pipeline: s.pipeline.map((t) => (t.id === id ? { ...t, acquisitionId: acqId } : t)) })),
+        addQA: (q) => {
+          const id = nextId('qa');
+          set((s) => ({ qa: [{ ...q, id, askedAt: DEMO_TODAY, askedBy: s.currentUserId }, ...s.qa] }));
+          log({ acqId: q.acqId, actor: get().currentUserId, kind: 'work', text: `added a question for ${q.askedOf.toLowerCase()}: "${q.question.slice(0, 70)}${q.question.length > 70 ? '…' : ''}"` });
+        },
+        updateQA: (id, patch) => {
+          const q = get().qa.find((x) => x.id === id);
+          set((s) => ({ qa: s.qa.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
+          if (q && patch.status && patch.status !== q.status) log({ acqId: q.acqId, actor: get().currentUserId, kind: 'work', text: `marked a Q&A item ${patch.status.toLowerCase()}: "${q.question.slice(0, 60)}…"` });
+        },
+        draftQAFromFindings: (acqId) => {
+          const asked = new Set(get().qa.filter((q) => q.acqId === acqId).map((q) => q.findingId));
+          const open = get().findings.filter((f) => f.acqId === acqId && !f.positive && ['Open', 'Under Review', 'Proposed'].includes(f.status) && !asked.has(f.id));
+          const items: QAItem[] = open.map((f, i) => ({
+            id: `qa-${acqId}-${get().seq}-${i}`,
+            acqId,
+            question: `Please explain: ${f.title.charAt(0).toLowerCase() + f.title.slice(1)}. ${f.recommendation ? 'What supporting data can you provide?' : ''}`.trim(),
+            workstream: f.workstream,
+            askedOf: 'Management',
+            askedBy: get().currentUserId,
+            status: 'Draft',
+            askedAt: DEMO_TODAY,
+            findingId: f.id,
+            draftedBy: 'atlas',
+          }));
+          set((s) => ({ qa: [...items, ...s.qa], seq: s.seq + 1 }));
+          if (items.length) log({ acqId, actor: 'atlas', kind: 'work', text: `drafted ${items.length} questions for management from open findings` });
+          return items.length;
         },
 
         confirmArchived: (dealId, accept) => {
@@ -533,7 +578,7 @@ export const useStore = create<State & Actions>()(
                 ...s.proposals,
               ],
             }));
-            push(`Found ${LS_GAPS.length} information gaps and drafted seller requests.`, 'gap');
+            push(`Found ${LS_GAPS.length} information gaps and drafted information requests.`, 'gap');
           }, end + 700);
           setTimeout(() => {
             set((s) => ({
@@ -764,7 +809,7 @@ export const useStore = create<State & Actions>()(
       };
     },
     {
-      name: 'maspace-prototype-v3',
+      name: 'maspace-prototype-v4',
       storage: createJSONStorage(() => localStorage),
       // Analysis runs are timer-driven; never restore one mid-flight.
       partialize: (s) => {

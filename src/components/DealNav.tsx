@@ -1,7 +1,7 @@
 'use client';
 
 import { Badge, Box, Center, Group, RingProgress, Stack, Text, UnstyledButton } from '@mantine/core';
-import { IconCheck, IconLayoutDashboard, IconSparkles, IconColumns3, IconListCheck, IconAlertTriangle, IconShieldExclamation, IconGavel, IconFiles, IconFileText, IconUsers, IconActivity, IconInbox, IconRadar } from '@tabler/icons-react';
+import { IconCheck, IconLayoutDashboard, IconSparkles, IconColumns3, IconListCheck, IconAlertTriangle, IconShieldExclamation, IconGavel, IconFiles, IconFileText, IconUsers, IconActivity, IconInbox, IconRadar, IconMessageQuestion } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -55,6 +55,7 @@ export function DealNav({ acqId, withPhases = true, onNavigate }: { acqId: strin
   const openRisks = useStore((s) => s.risks.filter((r) => r.acqId === acqId && (r.status === 'Open' || r.status === 'Mitigating')).length);
   const overdue = useStore((s) => s.work.filter((w) => w.acqId === acqId && w.status !== 'Complete' && w.due && w.due < DEMO_TODAY).length);
   const proposed = useStore((s) => s.findings.filter((f) => f.acqId === acqId && f.status === 'Proposed').length);
+  const qaOpen = useStore((s) => s.qa.filter((q) => q.acqId === acqId && q.status !== 'Answered').length);
   const review = useStore((s) => s.findings.filter((f) => f.acqId === acqId && f.status === 'Proposed').length + s.proposals.filter((x) => x.acqId === acqId && x.status === 'Pending').length);
   if (!acq) return null;
   const base = `/acquisitions/${acqId}`;
@@ -64,7 +65,7 @@ export function DealNav({ acqId, withPhases = true, onNavigate }: { acqId: strin
     <Box>
       <Stack gap={2}>
         <NavItem {...p} href={base} icon={<IconLayoutDashboard size={17} stroke={1.7} />} label="Overview" active={path === base} />
-        <NavItem {...p} href={`${base}/inbox`} icon={<IconInbox size={17} stroke={1.7} />} label="Atlas review" count={review} countColor="violet" active={is('/inbox') || is('/intake')} />
+        <NavItem {...p} href={`${base}/inbox`} icon={<IconInbox size={17} stroke={1.7} />} label="Review queue" count={review} countColor="violet" active={is('/inbox') || is('/intake')} />
         <NavItem {...p} href={`${base}/research`} icon={<IconRadar size={17} stroke={1.7} />} label="Target intelligence" active={is('/research')} />
         <NavItem {...p} href={`${base}/atlas`} icon={<IconSparkles size={17} stroke={1.7} />} label="Ask Atlas" active={is('/atlas')} />
       </Stack>
@@ -84,6 +85,7 @@ export function DealNav({ acqId, withPhases = true, onNavigate }: { acqId: strin
         <NavItem {...p} href={`${base}/work`} icon={<IconListCheck size={17} stroke={1.7} />} label="Work items" count={overdue} countColor="red" active={is('/work')} />
         <NavItem {...p} href={`${base}/findings`} icon={<IconAlertTriangle size={17} stroke={1.7} />} label="Findings" count={openFindings} countColor={proposed ? 'violet' : undefined} active={is('/findings')} />
         <NavItem {...p} href={`${base}/risks`} icon={<IconShieldExclamation size={17} stroke={1.7} />} label="Risk register" count={openRisks} active={is('/risks')} />
+        <NavItem {...p} href={`${base}/qa`} icon={<IconMessageQuestion size={17} stroke={1.7} />} label="Q&A" count={qaOpen} active={is('/qa')} />
         <NavItem {...p} href={`${base}/decisions`} icon={<IconGavel size={17} stroke={1.7} />} label="Decisions" count={pendingDecisions} countColor="blue" active={is('/decisions')} />
       </Stack>
       <Heading>Materials & people</Heading>

@@ -28,7 +28,7 @@ export const COASTAL: Acquisition = {
   name: 'Coastal Bend Plumbing',
   status: 'Active',
   currentPhase: 'valuation',
-  stageLabel: 'Preliminary Valuation / IOI',
+  stageLabel: 'Preliminary Valuation & IOI',
   dealLeadId: 'p-marcus',
   target: {
     legalName: 'Coastal Bend Plumbing & Drain, LLC',

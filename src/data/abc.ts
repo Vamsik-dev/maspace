@@ -69,7 +69,7 @@ export const ABC: Acquisition = {
     agreement: { status: 'active', progress: 20, summary: 'SPA first draft circulated by outside counsel. Awaiting diligence outputs for reps and indemnities.' },
     financing: { status: 'active', progress: 15, summary: 'Draw on acquisition facility requested; lender model update pending revised price.' },
     closing: { status: 'upcoming', progress: 0, summary: 'Target close Nov 20.' },
-    integration: { status: 'active', progress: 10, summary: 'Pre-close Day-1 planning started. Key integration decisions open.' },
+    integration: { status: 'active', progress: 10, summary: 'Pre-close Day 1 planning started. Key integration decisions open.' },
   },
   valuation: {
     multiple: 6.1,
@@ -92,6 +92,7 @@ export const ABC: Acquisition = {
     hr: { done: 9, total: 18 },
     insurance: { done: 6, total: 10 },
     environmental: { done: 5, total: 8 },
+    esg: { done: 2, total: 4 },
   },
   team: [
     { personId: 'p-marcus', dealRole: 'Owner', workstreams: ['commercial', 'financial'], note: 'Deal lead' },
@@ -243,7 +244,7 @@ export const ABC_FINDINGS: Finding[] = [
     implications: [
       { area: 'Operations', text: 'License qualifier succession for 2 branches.' },
       { area: 'Commercial', text: '27.7% of revenue relationship-managed by founder.' },
-      { area: 'Integration', text: 'Day-1 plan must name relationship owners for each top account.' },
+      { area: 'Integration', text: 'Day 1 plan must name relationship owners for each top account.' },
       { area: 'People', text: 'Retention terms for branch GMs.' },
     ],
     possibleActions: ['Create decision on founder transition', 'Request successor qualifier plan'],
@@ -348,7 +349,7 @@ export const ABC_FINDINGS: Finding[] = [
       citations: [{ docId: 'd-lic', page: 1, locator: 'Sheet "Licenses", row 5' }],
     },
     interpretation: 'Likely a record-keeping gap rather than a compliance failure, but worth confirming.',
-    recommendation: 'Request completed logs; add to Day-1 compliance checklist.',
+    recommendation: 'Request completed logs; add to Day 1 compliance checklist.',
     implications: [{ area: 'Integration', text: 'Adopt Meridian refrigerant tracking on Day 1.' }],
     riskIds: [],
     decisionIds: [],
@@ -601,7 +602,7 @@ export const ABC_DECISIONS: Decision[] = [
     findingIds: ['f-owner'],
     riskIds: ['r-keyperson'],
     documentIds: ['d-lic', 'd-mp'],
-    downstream: ['Employment agreement', 'Successor qualifier licensing', 'Day-1 relationship owner map'],
+    downstream: ['Employment agreement', 'Successor qualifier licensing', 'Day 1 relationship owner map'],
     comments: [],
   },
   {
@@ -625,7 +626,7 @@ export const ABC_DECISIONS: Decision[] = [
     findingIds: [],
     riskIds: [],
     documentIds: [],
-    downstream: ['Day-1 integration plan', '100-day plan'],
+    downstream: ['Day 1 integration plan', '100-day plan'],
     comments: [],
   },
 ];
@@ -657,7 +658,7 @@ export const ABC_WORK: WorkItem[] = [
   wi({ id: 'w-epa', title: 'Obtain complete Waco refrigerant logs', kind: 'Request', workstream: 'environmental', phase: 'diligence', status: 'Not Started', priority: 'Low', ownerId: 'p-james', due: '2026-10-15', findingIds: ['f-epa'] }),
   wi({ id: 'w-lender', title: 'Lender credit memo update for revised price', kind: 'Task', workstream: 'financial', phase: 'financing', status: 'Not Started', priority: 'High', ownerId: 'p-priya', due: '2026-10-16', dependsOn: ['w-model'], decisionIds: ['dec-price'] }),
   wi({ id: 'w-ic', title: 'Prepare IC package', kind: 'Approval', workstream: 'financial', phase: 'financing', status: 'Not Started', priority: 'High', ownerId: 'p-marcus', reviewerId: 'p-priya', due: '2026-10-12', dependsOn: ['w-model', 'w-custcalls'] }),
-  wi({ id: 'w-day1', title: 'Draft Day-1 integration plan', kind: 'Task', workstream: 'operations', phase: 'integration', status: 'In Progress', priority: 'Normal', ownerId: 'p-rachel', due: '2026-10-30' }),
+  wi({ id: 'w-day1', title: 'Draft Day 1 integration plan', kind: 'Task', workstream: 'operations', phase: 'integration', status: 'In Progress', priority: 'Normal', ownerId: 'p-rachel', due: '2026-10-30' }),
   wi({ id: 'w-mgmt', title: 'Prepare for management meeting (Oct 5)', kind: 'Task', workstream: 'commercial', phase: 'diligence', status: 'In Progress', priority: 'High', ownerId: 'p-marcus', due: '2026-10-04' }),
 ];
 
@@ -677,7 +678,7 @@ export const ABC_DELIVERABLES: Deliverable[] = [
   { id: 'dl-mgmt', acqId: A, title: 'Management Meeting Brief — Oct 5', type: 'Management Meeting Brief', status: 'Draft', ownerId: 'p-marcus', generatedAt: '2026-10-02', sources: ['d-qoe', 'd-cust', 'd-mp', 'd-lic'] },
   { id: 'dl-ic', acqId: A, title: 'Investment Committee Memorandum', type: 'IC Memo', status: 'Draft', ownerId: 'p-marcus', generatedAt: '2026-10-01', sources: ['d-qoe', 'd-cust', 'd-msa-bvisd', 'd-lic', 'd-salestax'] },
   { id: 'dl-weekly', acqId: A, title: 'Weekly Deal Update — Week of Sep 28', type: 'Weekly Deal Update', status: 'In Review', ownerId: 'p-marcus', generatedAt: '2026-10-02', sources: [] },
-  { id: 'dl-day1', acqId: A, title: 'Day-1 Integration Plan', type: 'Day-1 Integration Plan', status: 'Draft', ownerId: 'p-rachel', generatedAt: '2026-09-30', sources: [] },
+  { id: 'dl-day1', acqId: A, title: 'Day 1 Plan', type: 'Day 1 Plan', status: 'Draft', ownerId: 'p-rachel', generatedAt: '2026-09-30', sources: [] },
 ];
 
 export const ABC_ACTIVITY: Activity[] = [

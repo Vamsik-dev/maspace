@@ -10,6 +10,7 @@ import { differenceInCalendarDays } from 'date-fns';
 import { TopBar } from '@/components/Chrome';
 import { AtlasDrawer } from '@/components/Atlas';
 import { DealNav } from '@/components/DealNav';
+import { NextStep } from '@/components/PhaseDeliverables';
 import { useStore } from '@/lib/store';
 import { PHASES, DEMO_TODAY, fmtM } from '@/lib/meta';
 import { Empty, PersonAvatar, Pill } from '@/components/ui';
@@ -87,6 +88,7 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
               <Text fz={12.5} c="dimmed">
                 {acq.target.industry} · {acq.target.hq}
               </Text>
+              <NextStep acq={acq} />
             </Group>
           </Box>
           <Group gap="xl" wrap="nowrap" visibleFrom="sm">

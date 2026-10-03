@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { TopBar } from '@/components/Chrome';
 import { PageHeader, Section } from '@/components/ui';
 import { useUi } from '@/lib/ui-store';
+import { GLOSSARY } from '@/data/glossary';
 
 const A = '/acquisitions/acq-abc';
 
@@ -178,6 +179,30 @@ export default function GuidePage() {
             </Section>
           </Stack>
         </SimpleGrid>
+        <Box mt="lg">
+          <Section title="Terms we use (tell us if your team says something different)" pad={false}>
+            <Box style={{ overflowX: 'auto' }}>
+              <Table fz="sm" verticalSpacing={7} style={{ minWidth: 640 }}>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th w={210}>Term</Table.Th>
+                    <Table.Th>Meaning</Table.Th>
+                    <Table.Th w={200}>Instead of</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {GLOSSARY.map((g) => (
+                    <Table.Tr key={g.term}>
+                      <Table.Td fw={600}>{g.term}</Table.Td>
+                      <Table.Td>{g.meaning}</Table.Td>
+                      <Table.Td c="dimmed">{g.avoid ?? '—'}</Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </Box>
+          </Section>
+        </Box>
       </Box>
     </Box>
   );

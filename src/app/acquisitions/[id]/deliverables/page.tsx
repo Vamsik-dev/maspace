@@ -10,13 +10,17 @@ import type { Deliverable } from '@/lib/types';
 import { fmtDate } from '@/lib/atlas';
 import { PageHeader, StatusBadge, Person, Empty } from '@/components/ui';
 
-const TYPES: { type: Deliverable['type']; desc: string }[] = [
-  { type: 'IC Memo', desc: 'Transaction, thesis, valuation, findings, risks and decisions required.' },
-  { type: 'Management Meeting Brief', desc: 'Issues to clarify, questions and lessons from prior deals.' },
-  { type: 'Weekly Deal Update', desc: 'What changed, what is pending, what is next.' },
-  { type: 'Diligence Summary', desc: 'Findings by workstream with sources.' },
-  { type: 'Day-1 Integration Plan', desc: 'Day-1 must-haves and integration implications from diligence.' },
-  { type: 'Target Brief', desc: 'Profile, strategic fit and initial questions.' },
+// Ordered by deal phase, following the standard 8-phase process.
+const TYPES: { type: Deliverable['type']; desc: string; phase: string }[] = [
+  { type: 'Investment Thesis', desc: 'Why we are buying, criteria and synergy hypotheses.', phase: '1 · Strategy' },
+  { type: 'Target Brief', desc: 'Profile, strategic fit and initial questions.', phase: '1 · Strategy' },
+  { type: 'IOI Letter', desc: 'Non-binding indication of interest with valuation range and structure.', phase: '2 · Valuation & IOI' },
+  { type: 'Management Meeting Brief', desc: 'Issues to clarify, questions and lessons from prior deals.', phase: '2–4' },
+  { type: 'Due Diligence Report', desc: 'Findings by workstream with sources.', phase: '4 · Due Diligence' },
+  { type: 'IC Memo', desc: 'Transaction, thesis, valuation, findings, risks and decisions required.', phase: '6 · Approvals' },
+  { type: 'Weekly Deal Update', desc: 'What changed, what is pending, what is next.', phase: 'Any' },
+  { type: 'Day 1 Plan', desc: 'Day 1 must-haves and integration implications from diligence.', phase: '8 · Integration' },
+  { type: '100-Day Plan', desc: 'Integration workstreams, synergy capture and integration KPIs.', phase: '8 · Integration' },
 ];
 
 export default function DeliverablesPage() {
@@ -48,9 +52,14 @@ export default function DeliverablesPage() {
             <Menu.Dropdown>
               {TYPES.map((t) => (
                 <Menu.Item key={t.type} onClick={() => create(t.type)}>
-                  <Text size="sm" fw={500}>
-                    {t.type}
-                  </Text>
+                  <Group justify="space-between" wrap="nowrap">
+                    <Text size="sm" fw={500}>
+                      {t.type}
+                    </Text>
+                    <Text fz={10.5} c="dimmed">
+                      Phase {t.phase}
+                    </Text>
+                  </Group>
                   <Text size="xs" c="dimmed">
                     {t.desc}
                   </Text>

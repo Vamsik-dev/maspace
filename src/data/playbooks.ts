@@ -35,6 +35,7 @@ export const MECH_WORKSTREAMS = [
   { key: 'hr', label: 'HR', scope: 'Workforce, key people, compensation, retention, benefits.' },
   { key: 'insurance', label: 'Insurance / Risk', scope: 'Coverage, claims history, warranty exposure.' },
   { key: 'environmental', label: 'Environmental / Regulatory', scope: 'Refrigerant handling, permits, licensing compliance.' },
+  { key: 'esg', label: 'ESG & Safety', scope: 'Safety record (OSHA logs, EMR), environmental practices, governance and ethics.' },
 ];
 
 export const HEALTH_WORKSTREAMS = [
@@ -47,6 +48,7 @@ export const HEALTH_WORKSTREAMS = [
   { key: 'ops', label: 'Operations', scope: 'Locations, scheduling, capacity, ASC utilization.' },
   { key: 'ehr', label: 'Technology & EHR', scope: 'EHR, billing systems, interoperability, cybersecurity, data migration.' },
   { key: 'legal', label: 'Legal', scope: 'Corporate structure, real estate, litigation, malpractice history.' },
+  { key: 'esg', label: 'ESG & Patient Safety', scope: 'Patient safety events, privacy, workforce practices, governance.' },
 ];
 
 export const PLAYBOOKS: Playbook[] = [
@@ -72,6 +74,7 @@ export const PLAYBOOKS: Playbook[] = [
       { workstream: 'legal', items: ['Top-20 customer contracts', 'Corporate records'] },
       { workstream: 'operations', items: ['Fleet schedule', 'Branch P&Ls'] },
       { workstream: 'environmental', items: ['License register', 'EPA 608 records'] },
+      { workstream: 'esg', items: ['OSHA 300 logs, 3 years', 'Experience modification rate (EMR)'] },
     ],
     decisionGates: ['Screen → IOI: thesis fit ≥ 4 of 6', 'LOI: price within guardrail or structured', 'SPA: every High finding has a contractual answer', 'IC: QoE final and top-5 customer calls complete'],
     integrationPriorities: ['License qualifier in place Day 1', 'Pay-band alignment before announcement', 'Defer field-service software migration to month 6', 'Top-account relationship owners named'],

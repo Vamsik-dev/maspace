@@ -147,13 +147,13 @@ export function generate(type: Deliverable['type'], acqId: string, s: S): Block[
     ];
   }
 
-  if (type === 'Day-1 Integration Plan') {
+  if (type === 'Day 1 Plan') {
     const integ = findings.flatMap((f) => f.implications.filter((x) => x.area === 'Integration').map((x) => ({ f, x })));
     return [
       disclaimer,
-      h(1, `Day-1 Integration Plan — ${acq.name}`),
+      h(1, `Day 1 Plan — ${acq.name}`),
       p(b('Integration lead: '), 'Rachel Kim. ', b('Day 1: '), 'Mon Nov 23, 2026 (planned).'),
-      h(2, 'Day-1 must-haves'),
+      h(2, 'Day 1 must-haves'),
       li('Customer and employee announcements (sequenced: employees 7am, top-5 customers by noon).'),
       li('License qualifier in place for all three branches.'),
       li('Payroll and benefits continuity confirmed.'),
@@ -172,6 +172,70 @@ export function generate(type: Deliverable['type'], acqId: string, s: S): Block[
         ['Operations', 'Rachel Kim', 'Dispatch unchanged', 'Fleet replacement plan', 'Purchasing consolidation'],
         ['IT', 'Luis Ortega', 'Email/identity', 'Network & security baseline', 'FSM migration plan (month 6)'],
       ]),
+    ];
+  }
+
+  if (type === 'Investment Thesis') {
+    return [
+      disclaimer,
+      h(1, `Investment Thesis — ${acq.name}`),
+      p(b('Strategy: '), acq.strategy),
+      ...(acq.rationale ? [p(b('Why we are interested: '), acq.rationale)] : []),
+      h(2, 'Thesis'),
+      p(acq.thesis.summary),
+      ...acq.thesis.pillars.map((x) => li(x)),
+      h(2, 'Screening criteria and what we must prove in diligence'),
+      table([['Assumption', 'Playbook expects', 'Current evidence', 'Status'], ...acq.thesis.assumptions.map((a) => [a.label, a.expected, a.current ?? 'Not yet tested', a.status])]),
+      h(2, 'Synergy hypotheses'),
+      p(i('To be completed by the deal lead. Atlas lists hypotheses from the playbook; values are set by the team.')),
+      li('Revenue: cross-sell existing services into the target’s customer base.'),
+      li('Cost: purchasing, insurance and back-office consolidation.'),
+      li('Capability: talent, licenses or geography the platform lacks.'),
+    ];
+  }
+
+  if (type === 'IOI Letter') {
+    const lo = Math.round(acq.target.ebitda * 5.5 * 10) / 10;
+    const hi = Math.round(acq.target.ebitda * 6.5 * 10) / 10;
+    return [
+      disclaimer,
+      h(1, `Indication of Interest — ${acq.name}`),
+      p(i('Draft for review by the deal lead and counsel. Non-binding.')),
+      h(2, '1. Purchase price'),
+      p(`Based on the information provided, we would value 100% of ${t.legalName} at an enterprise value of $${lo.toFixed(1)}M to $${hi.toFixed(1)}M on a cash-free, debt-free basis with a normalized level of working capital. The range applies the playbook guardrail to $${t.ebitda.toFixed(2)}M of ${t.ebitdaBasis.toLowerCase()} EBITDA and is subject to diligence.`),
+      h(2, '2. Structure and consideration'),
+      p('Purchase of 100% of the equity, primarily cash at close. We may propose a portion of consideration as an earn-out or seller note depending on diligence findings.'),
+      h(2, '3. Key diligence areas'),
+      ...findings.filter((f) => !f.positive).slice(0, 5).map((f) => li(f.title)),
+      ...(findings.length ? [] : [li('Quality of earnings'), li('Customer and contract review'), li('Key people and licensing')]),
+      h(2, '4. Timing and approvals'),
+      p('We expect to complete confirmatory diligence within 60–75 days of a signed LOI, subject to investment committee approval.'),
+      h(2, '5. Conditions'),
+      li('Satisfactory due diligence'),
+      li('Agreement on key employee and owner transition terms'),
+      li('Definitive agreement and customary closing conditions'),
+    ];
+  }
+
+  if (type === '100-Day Plan') {
+    const kpis = s.playbooks.find((pb) => pb.id === acq.playbookId)?.outcomeMetrics ?? [];
+    const priorities = s.playbooks.find((pb) => pb.id === acq.playbookId)?.integrationPriorities ?? [];
+    return [
+      disclaimer,
+      h(1, `100-Day Plan — ${acq.name}`),
+      h(2, 'Integration priorities (from the playbook)'),
+      ...priorities.map((x) => li(x)),
+      h(2, 'Plan by period'),
+      table([
+        ['Period', 'Focus', 'Exit criteria'],
+        ['Days 1–30', 'Stabilize: people, customers, cash, compliance', 'No key departures; billing and payroll continuous'],
+        ['Days 31–60', 'Align: pay bands, reporting, purchasing', 'Monthly close on platform reporting'],
+        ['Days 61–100', 'Capture: synergies, cross-sell, systems roadmap', 'Synergy run-rate on track; systems plan approved'],
+      ]),
+      h(2, 'Integration KPIs'),
+      table([['KPI', 'Target', 'Owner'], ...kpis.map((k) => [k, 'Set by integration lead', name(acq.dealLeadId)])]),
+      h(2, 'Integration implications from diligence'),
+      ...findings.flatMap((f) => f.implications.filter((x) => x.area === 'Integration').map((x) => li(x.text, ' ', i(`(from: ${f.title})`)))),
     ];
   }
 
@@ -200,10 +264,10 @@ export function generate(type: Deliverable['type'], acqId: string, s: S): Block[
     ];
   }
 
-  // Diligence Summary
+  // Due Diligence Report
   return [
     disclaimer,
-    h(1, `Diligence Summary — ${acq.name}`),
+    h(1, `Due Diligence Report — ${acq.name}`),
     table([
       ['Workstream', 'Findings', 'High/Critical'],
       ...Array.from(new Set(findings.map((f) => f.workstream))).map((w) => [wsLabel(w), String(findings.filter((f) => f.workstream === w).length), String(findings.filter((f) => f.workstream === w && (f.severity === 'High' || f.severity === 'Critical')).length)]),
