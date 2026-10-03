@@ -154,7 +154,7 @@ export function WhyPopover({ acqId, citations, calculation, comparedWith, label 
             <>
               <Divider />
               <Text className="label">Calculation</Text>
-              <Text size="xs" ff="monospace" className="num">
+              <Text size="xs" className="num">
                 {calculation}
               </Text>
             </>
@@ -188,7 +188,7 @@ export function CitationLine({ acqId, c }: { acqId: string; c: Citation }) {
         </Group>
       </Anchor>
       {c.quote && (
-        <Text size="xs" c="dimmed" fs="italic" pl={20} mt={2}>
+        <Text size="xs" c="dimmed" pl={20} mt={2}>
           “{c.quote}”
         </Text>
       )}

@@ -59,7 +59,7 @@ export default function FeedbackPage() {
                 <Group key={f.id} p="md" align="flex-start" wrap="nowrap" style={{ borderBottom: '1px solid #f1f4f9' }}>
                   <Box style={{ flex: 1 }}>
                     <Group gap={6} mb={4}>
-                      <Text size="xs" ff="monospace" c="dimmed">
+                      <Text size="xs" className="num" c="dimmed">
                         {f.path}
                       </Text>
                       {f.rating && <Badge size="xs" color={f.rating === 'Matches how we work' ? 'teal' : f.rating === 'Partly' ? 'yellow' : 'red'}>{f.rating}</Badge>}

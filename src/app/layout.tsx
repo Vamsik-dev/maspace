@@ -1,10 +1,6 @@
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
-import '@fontsource/ibm-plex-sans/latin-400.css';
-import '@fontsource/ibm-plex-sans/latin-500.css';
-import '@fontsource/ibm-plex-sans/latin-600.css';
-import '@fontsource/ibm-plex-sans/latin-700.css';
-import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource-variable/mona-sans/standard.css';
 import '@mantine/spotlight/styles.css';
 import './globals.css';
 import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';

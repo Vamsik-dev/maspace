@@ -87,7 +87,7 @@ export default function IntakePage() {
                       <Text size="sm" style={{ flex: 1 }} fw={l.kind === 'finding' || l.kind === 'done' ? 600 : 400}>
                         {l.text}
                       </Text>
-                      <Text fz={10.5} c="dimmed" ff="monospace">
+                      <Text fz={10.5} c="dimmed" className="num">
                         {l.t}
                       </Text>
                     </Group>

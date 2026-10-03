@@ -40,7 +40,7 @@ Industry templates sit on top: Mechanical Services, Specialty Healthcare, Dental
 3. **Healthcare:** large, but needs deeper domain validation (regulatory, clinical, payer). Validate the healthcare playbook with a healthcare M&A SME before selling.
 4. **Larger enterprises:** "Give your M&A organization an institutional intelligence layer." Their teams, VDR, models and ERP stay; we connect evidence → intelligence → decisions → execution → organizational memory.
 
-### The enterprise memory use case
+### The enterprise memory scenario
 
 A company with 40 acquisitions over ten years has its knowledge scattered across deal folders, Excel, IC memos, email, integration reports, consultant documents and VDR archives. **Archive backfill** reconstructs each deal into structured memory (thesis, metrics at diligence, outcomes, lessons), shows confidence and gaps, and asks a person to confirm each record. The prototype shows this under **Memory → Connect archive**, with questions such as:
 

@@ -1,11 +1,7 @@
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/spotlight/styles.css';
-import '@fontsource/ibm-plex-sans/latin-400.css';
-import '@fontsource/ibm-plex-sans/latin-500.css';
-import '@fontsource/ibm-plex-sans/latin-600.css';
-import '@fontsource/ibm-plex-sans/latin-700.css';
-import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource-variable/mona-sans/standard.css';
 import '@/app/globals.css';
 import { createRoot } from 'react-dom/client';
 import { useSyncExternalStore, type ComponentType, type ReactNode } from 'react';

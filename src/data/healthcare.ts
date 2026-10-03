@@ -228,7 +228,7 @@ export const RB_SAMPLE: Sample = {
         severity: 'Medium',
         ownerId: 'p-h-grace',
         fact: { text: 'Commercial payers were 48.2% of FY2025 collections, down from 53.0% in FY2023, while Medicare/MA rose to 31.5%.', citations: [{ docId: 'payer', page: 1 }] },
-        interpretation: 'Below the 55% playbook threshold and trending down, which pressures revenue per case.',
+        interpretation: 'Below the 55% playbook threshold and trending down, which pressures revenue per procedure.',
         recommendation: 'Model reimbursement at the FY2025 mix, not the three-year average.',
         thesisLink: { assumptionId: 'commercialPayerPct', expected: '≥ 55%', actual: '48.2%' },
         implications: [{ area: 'Financial', text: 'Lower blended reimbursement in the forecast.' }],

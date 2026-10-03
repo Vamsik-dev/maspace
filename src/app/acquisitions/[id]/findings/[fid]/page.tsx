@@ -133,7 +133,7 @@ export default function FindingPage() {
                     <Text className="label" mb={4}>
                       Calculation
                     </Text>
-                    <Text size="sm" ff="monospace" className="num" style={{ background: '#f8fafc', border: '1px solid var(--app-border)', borderRadius: 6, padding: '6px 10px', display: 'inline-block' }}>
+                    <Text size="sm" className="num" style={{ background: '#f8fafc', border: '1px solid var(--app-border)', borderRadius: 6, padding: '6px 10px', display: 'inline-block' }}>
                       {f.calculation}
                     </Text>
                   </Box>

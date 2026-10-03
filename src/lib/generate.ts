@@ -15,7 +15,8 @@ type Block = { type: string; props?: Record<string, unknown>; content?: Inline[]
 const h = (level: 1 | 2 | 3, text: string): Block => ({ type: 'heading', props: { level }, content: text });
 const p = (...c: Inline[]): Block => ({ type: 'paragraph', content: c });
 const b = (text: string): Inline => ({ type: 'text', text, styles: { bold: true } });
-const i = (text: string): Inline => ({ type: 'text', text, styles: { italic: true } });
+// Secondary notes in generated documents: same type family, no italics.
+const i = (text: string): Inline => ({ type: 'text', text, styles: {} });
 const li = (...c: Inline[]): Block => ({ type: 'bulletListItem', content: c });
 const ni = (...c: Inline[]): Block => ({ type: 'numberedListItem', content: c });
 const table = (rows: string[][]): Block => ({ type: 'table', content: { type: 'tableContent', rows: rows.map((cells) => ({ cells })) } });

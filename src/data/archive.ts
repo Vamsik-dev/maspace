@@ -1,7 +1,7 @@
 import type { PriorAcquisition } from '@/lib/types';
 
 // SYNTHETIC DEMO DATA. Archived deal folders that Atlas reconstructs into
-// structured acquisition memory: the enterprise "40 deals in SharePoint" case.
+// structured acquisition memory: the enterprise "40 deals in SharePoint" scenario.
 
 export interface ArchivedDeal {
   record: PriorAcquisition;

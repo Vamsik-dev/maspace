@@ -11,9 +11,10 @@ export const theme = createTheme({
   primaryShade: 7,
   colors: { ink, stone, navy },
   black: '#0f1b2d',
-  fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-  fontFamilyMonospace: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
-  headings: { fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif', fontWeight: '600' },
+  // One type family across the product and the site; numbers use tabular figures (.num).
+  fontFamily: '"Mona Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  fontFamilyMonospace: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+  headings: { fontFamily: '"Mona Sans Variable", ui-sans-serif, system-ui, sans-serif', fontWeight: '600' },
   fontSizes: { xs: '12px', sm: '13.5px', md: '14.5px', lg: '16px', xl: '19px' },
   defaultRadius: 'md',
   radius: { xs: '3px', sm: '5px', md: '7px', lg: '10px', xl: '14px' },

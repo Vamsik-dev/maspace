@@ -115,7 +115,7 @@ function Viewer() {
               </Text>
               <Stack gap="sm">
                 {p.body.map((para, i) => (
-                  <Text key={i} size="sm" lh={1.65} style={{ fontFamily: doc.type === 'PDF' || doc.type === 'DOCX' ? 'Georgia, serif' : undefined }}>
+                  <Text key={i} size="sm" lh={1.65} >
                     {highlight(para, quotesFor(p.n))}
                   </Text>
                 ))}

@@ -18,7 +18,7 @@ function BlockView({ b, acqId, onNavigate }: { b: AtlasBlock; acqId: string; onN
     );
   if (b.type === 'note')
     return (
-      <Text size="xs" c="dimmed" fs="italic">
+      <Text size="xs" c="dimmed">
         {b.text}
       </Text>
     );

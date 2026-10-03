@@ -72,25 +72,13 @@ export function Count({ to, suffix = '', prefix = '', decimals = 0 }: { to: numb
   );
 }
 
-export function AtlasMark({ size = 28 }: { size?: number }) {
+export function AtlasMark({ size = 26 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden>
-      <defs>
-        <linearGradient id="am-g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#9b7bff" />
-          <stop offset="0.55" stopColor="#5b84ff" />
-          <stop offset="1" stopColor="#d9b45f" />
-        </linearGradient>
-      </defs>
-      <rect x="1" y="1" width="30" height="30" rx="9" fill="#0d1428" stroke="url(#am-g)" strokeWidth="1.4" />
-      <circle cx="16" cy="16" r="8.5" fill="none" stroke="url(#am-g)" strokeWidth="1.6" />
-      <ellipse cx="16" cy="16" rx="3.6" ry="8.5" fill="none" stroke="url(#am-g)" strokeWidth="1.3" />
-      <path d="M7.8 13.2h16.4M7.8 18.8h16.4" stroke="url(#am-g)" strokeWidth="1.1" opacity="0.8" />
-      <circle cx="23.6" cy="9" r="2" fill="#d9b45f" />
+      <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="8" fill="#0f1830" stroke="#33415f" strokeWidth="1.5" />
+      <circle cx="16" cy="16" r="8.5" fill="none" stroke="#8ea6ff" strokeWidth="1.6" />
+      <ellipse cx="16" cy="16" rx="3.6" ry="8.5" fill="none" stroke="#8ea6ff" strokeWidth="1.3" />
+      <path d="M7.8 13.2h16.4M7.8 18.8h16.4" stroke="#8ea6ff" strokeWidth="1.1" opacity="0.7" />
     </svg>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Hero product preview: a looping, deterministic Atlas run            */
-/* ------------------------------------------------------------------ */
