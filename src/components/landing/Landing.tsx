@@ -3,7 +3,7 @@
 import '@fontsource-variable/mona-sans/standard.css';
 import { IconArrowRight, IconCheck, IconLock, IconMinus, IconPlus } from '@tabler/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { PLAYBOOKS } from '@/data/playbooks';
 import { PHASES } from '@/lib/meta';
 import { ruleText } from '@/lib/playbook';
@@ -11,7 +11,7 @@ import { useStore } from '@/lib/store';
 import { COMPARE, COMPARE_COLS, FAQ, PILLARS, SEGMENTS, SYSTEM, THESIS, TIERS, TRUST, type Mark } from './data';
 import { AtlasMark, cx, Reveal, useReducedMotion } from './kit';
 import { SignIn } from './SignIn';
-import { AcquisitionLoop, ClaimsViz, DecisionViz, MemoryViz, PlaybookViz, ProductPreview, ReviewQueue, SerialViz } from './visuals';
+import { AcquisitionLoop, ClaimsViz, Constellation, DecisionViz, DocScan, Flow, IntegrationViz, LoiTerms, MemoryViz, PipelineViz, PlaybookViz, ProductPreview, ReviewQueue, SerialViz } from './visuals';
 import s from './landing.module.css';
 
 export { AtlasMark };
@@ -256,6 +256,18 @@ function Faq() {
 
 /* ---------------- Page ---------------- */
 
+const TICKER = [
+  ['Pre-screened', '14 new targets', 'against Mechanical v4'],
+  ['Read', 'QoE report · 64 pages', 'every finding cited'],
+  ['Checked', 'seller claim “Adj. EBITDA $3.62M”', 'contradicted by the QoE'],
+  ['Matched', '2 similar past acquisitions', 'and their lessons'],
+  ['Proposed', 'NWC peg $2.05–2.20M', 'from the QoE'],
+  ['Mapped', 'sales-tax finding', 'to a specific indemnity and escrow'],
+  ['Drafted', 'IC memo', 'every number linked to its source'],
+  ['Updated', 'Acquisition Playbook v4', 'from integration lessons'],
+];
+const HEADLINE = ['Every', 'acquisition', 'makes', 'the', 'next', 'one'];
+
 const SYSTEM_VIZ = [PlaybookViz, DecisionViz, MemoryViz, ClaimsViz, null, SerialViz];
 
 export function Landing() {
@@ -268,12 +280,34 @@ export function Landing() {
   const [scrolled, setScrolled] = useState(false);
   const [pb, setPb] = useState(PLAYBOOKS[0].id);
 
+  const windowRef = useRef<HTMLDivElement>(null);
+  const tilt = useRef({ rx: 12, ry: 0 });
+  const applyTilt = useCallback(() => {
+    const el = windowRef.current;
+    if (!el) return;
+    el.style.setProperty('--rx', `${tilt.current.rx}deg`);
+    el.style.setProperty('--ry', `${tilt.current.ry}deg`);
+  }, []);
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 12);
+      // The preview flattens as you scroll into it.
+      tilt.current.rx = Math.max(0, 12 - window.scrollY / 30);
+      applyTilt();
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [applyTilt]);
+
+  const spotlight = (e: React.MouseEvent) => {
+    const card = (e.target as HTMLElement).closest<HTMLElement>(`.${s.card}, .${s.part}`);
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    card.style.setProperty('--my', `${e.clientY - r.top}px`);
+  };
 
   const enter = () => {
     if (signedIn) router.push('/');
@@ -292,7 +326,13 @@ export function Landing() {
 
   return (
     <div className={s.root}>
-      <div className={s.backdrop} aria-hidden />
+      <div className={s.aurora} aria-hidden>
+        <div className={s.blob} />
+        <div className={s.blob} />
+        <div className={s.blob} />
+      </div>
+      <div className={s.grid} aria-hidden />
+      <div className={s.noise} aria-hidden />
 
       <header className={cx(s.nav, scrolled && s.navScrolled)}>
         <div className={cx(s.container, s.navInner)}>
@@ -304,6 +344,7 @@ export function Landing() {
             {[
               ['loop', 'Acquisition loop'],
               ['system', 'Platform'],
+              ['product', 'Product'],
               ['fit', 'Why Atlas'],
               ['pricing', 'Pricing'],
               ['faq', 'FAQ'],
@@ -325,10 +366,36 @@ export function Landing() {
       </header>
 
       {/* Hero */}
-      <section className={s.hero}>
+      <section
+        className={s.hero}
+        onMouseMove={(e) => {
+          if (reduced) return;
+          const r = e.currentTarget.getBoundingClientRect();
+          tilt.current.ry = ((e.clientX - r.left) / r.width - 0.5) * 7;
+          applyTilt();
+        }}
+        onMouseLeave={() => {
+          tilt.current.ry = 0;
+          applyTilt();
+        }}
+      >
         <div className={s.container}>
-          <h1 className={cx(s.h1, s.fadeUp)} style={{ animationDelay: '0.08s' }}>
-            Every acquisition makes the next one <span className={s.accentWord}>smarter.</span>
+          <button className={cx(s.announce, s.fadeUp)} onClick={enter}>
+            <span className={s.announceTag}>New</span>
+            Acquisition Memory: predictions, outcomes and lessons from every deal
+            <IconArrowRight size={13} />
+          </button>
+          <h1 className={s.h1}>
+            {HEADLINE.map((w, i) => (
+              <Fragment key={i}>
+                <span className={cx(s.word, s.grad)} style={{ animationDelay: `${0.1 + i * 0.07}s` }}>
+                  {w}
+                </span>{' '}
+              </Fragment>
+            ))}
+            <span className={s.word} style={{ animationDelay: `${0.1 + HEADLINE.length * 0.07}s` }}>
+              <span className={s.accentWord}>smarter.</span>
+            </span>
           </h1>
           <p className={cx(s.ledeLead, s.fadeUp)} style={{ animationDelay: '0.16s' }}>
             Atlas is the acquisition intelligence platform for companies that buy companies.
@@ -337,7 +404,7 @@ export function Landing() {
             Atlas reads the evidence, applies your acquisition playbook, learns from past outcomes, and helps your team focus on the decisions that matter.
           </p>
           <div className={cx(s.heroCtas, s.fadeUp)} style={{ animationDelay: '0.24s' }}>
-            <button className={cx(s.btn, s.btnPrimary, s.btnLg)} onClick={enter}>
+            <button className={cx(s.btn, s.btnPrimary, s.btnLg, s.sheen)} onClick={enter}>
               Enter the live demo <IconArrowRight size={17} className={s.btnArrow} />
             </button>
             <a className={cx(s.btn, s.btnGhost, s.btnLg)} href="#loop" onClick={scrollTo('loop')}>
@@ -345,8 +412,15 @@ export function Landing() {
             </a>
           </div>
 
-          <div className={cx(s.stage, s.fadeUp)} style={{ animationDelay: '0.36s' }}>
-            <div className={s.window}>
+          <div className={s.stage}>
+            <div className={s.stageGlow} />
+            <div className={cx(s.float, s.floatA)}>
+              <span className={s.pulseDot} /> 5 proposals waiting for review
+            </div>
+            <div className={cx(s.float, s.floatB)}>
+              <span className={cx(s.label, s.lMem)}>Memory</span> Seen in 2 past acquisitions
+            </div>
+            <div className={s.window} ref={windowRef}>
               <div className={s.windowBar}>
                 <div className={s.dots}>
                   <i />
@@ -364,6 +438,17 @@ export function Landing() {
           </div>
         </div>
       </section>
+
+      <div className={s.marquee} aria-hidden>
+        <div className={s.marqueeTrack}>
+          {[...TICKER, ...TICKER].map(([a, b, c], i) => (
+            <div key={i} className={s.marqueeItem}>
+              <span className={s.tickDot} />
+              {a} <b>{b}</b> · {c}
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* 01 The acquisition loop */}
       <section className={s.section} id="loop">
@@ -403,7 +488,7 @@ export function Landing() {
             muted="Six connected parts."
             sub="Each part feeds the others: the playbook scores the evidence, decisions are traced to findings, and outcomes return to the playbook through Acquisition Memory."
           />
-          <div className={s.system}>
+          <div className={s.system} onMouseMove={spotlight}>
             {SYSTEM.map((x, i) => {
               const Viz = SYSTEM_VIZ[i];
               return (
@@ -421,10 +506,52 @@ export function Landing() {
         </div>
       </section>
 
-      {/* 03 Across the deal */}
+      {/* 03 Inside the workspace */}
+      <section className={s.section} id="product">
+        <div className={s.container}>
+          <SectionHead n="03" eyebrow="Inside the workspace" title="One workspace for the whole acquisition," muted="and every acquisition after it." />
+          <div className={s.bento} onMouseMove={spotlight}>
+            <Reveal className={s.card}>
+              <PipelineViz reduced={reduced} />
+              <div className={s.cardK}>Strategy</div>
+              <div className={s.cardTitle}>A pipeline screened against your playbook</div>
+              <div className={s.cardText}>New targets are pre-screened as they arrive. Pass reasons are kept, so the team never re-evaluates the same company.</div>
+            </Reveal>
+            <Reveal className={cx(s.card, s.span2)} delay={0.08}>
+              <DocScan />
+              <div className={s.cardK}>Diligence</div>
+              <div className={s.cardTitle}>Every finding linked to its page</div>
+              <div className={s.cardText}>Deal documents become labelled findings: fact, AI interpretation, prior-deal precedent and recommendation, each traceable to its source.</div>
+            </Reveal>
+            <Reveal className={s.card}>
+              <Constellation />
+              <div className={s.cardK}>Acquisition Memory</div>
+              <div className={s.cardTitle}>Past acquisitions, on hand</div>
+              <div className={s.cardText}>Atlas surfaces the past deals that resemble today’s target, and what the team learned from them.</div>
+            </Reveal>
+            <Reveal className={s.card} delay={0.06}>
+              <IntegrationViz />
+              <div className={s.cardK}>Integration</div>
+              <div className={s.cardTitle}>Value realization against the thesis</div>
+              <div className={s.cardText}>100-day KPIs for synergies, retention and systems, measured against what you paid for.</div>
+            </Reveal>
+            <Reveal className={s.card} delay={0.12}>
+              <LoiTerms />
+              <div className={s.cardK}>Terms</div>
+              <div className={s.cardTitle}>Findings become terms</div>
+              <div className={s.cardText}>LOI terms and deal protections drafted from the evidence, with the reasoning behind every number.</div>
+            </Reveal>
+          </div>
+          <Reveal>
+            <Flow />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* 04 Across the deal */}
       <section className={s.section} id="process">
         <div className={s.container}>
-          <SectionHead n="03" eyebrow="Across the deal" title="From thesis to value realization." muted="Eight phases, one record." sub="Each phase has its key deliverables, live status and a clear next step. Phases overlap, as they do in real acquisitions." />
+          <SectionHead n="04" eyebrow="Across the deal" title="From thesis to value realization." muted="Eight phases, one record." sub="Each phase has its key deliverables, live status and a clear next step. Phases overlap, as they do in real acquisitions." />
           <Reveal>
             <div className={s.phases}>
               <div className={s.phaseLine}>
@@ -462,7 +589,7 @@ export function Landing() {
       <section className={s.section} id="fit">
         <div className={s.container}>
           <SectionHead
-            n="04"
+            n="05"
             eyebrow="Why Atlas"
             title="Your data room stores documents. Your CRM tracks deals."
             muted="Atlas keeps what the team learns."
@@ -483,7 +610,7 @@ export function Landing() {
       {/* 05 Who it's for */}
       <section className={s.section} id="who">
         <div className={s.container}>
-          <SectionHead n="05" eyebrow="Who it’s for" title="Built for serial acquirers," muted="from lean deal teams to enterprise M&A." />
+          <SectionHead n="06" eyebrow="Who it’s for" title="Built for serial acquirers," muted="from lean deal teams to enterprise M&A." />
           <div className={s.segments}>
             {SEGMENTS.map((g, i) => (
               <Reveal key={g.k} delay={i * 0.06} className={s.segment}>
@@ -551,7 +678,7 @@ export function Landing() {
       {/* 06 Pricing */}
       <section className={s.section} id="pricing">
         <div className={s.container}>
-          <SectionHead center n="06" eyebrow="Pricing" title="Priced per program." muted="Never on deal value." sub="Start with one acquisition and grow into a program. No success fees." />
+          <SectionHead center n="07" eyebrow="Pricing" title="Priced per program." muted="Never on deal value." sub="Start with one acquisition and grow into a program. No success fees." />
           <Pricing onStart={enter} />
         </div>
       </section>
@@ -559,7 +686,7 @@ export function Landing() {
       {/* 07 FAQ */}
       <section className={s.section} id="faq">
         <div className={cx(s.container, s.faqGrid)}>
-          <SectionHead n="07" eyebrow="Questions" title="What deal teams" muted="ask first." />
+          <SectionHead n="08" eyebrow="Questions" title="What deal teams" muted="ask first." />
           <Reveal>
             <Faq />
           </Reveal>
@@ -570,6 +697,7 @@ export function Landing() {
         <div className={s.container}>
           <Reveal>
             <div className={s.cta}>
+              <div className={s.orb} aria-hidden />
               <h2 className={s.h2} style={{ margin: '0 auto' }}>
                 Walk through a live acquisition.
               </h2>

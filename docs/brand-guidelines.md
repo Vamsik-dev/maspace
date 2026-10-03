@@ -30,7 +30,7 @@ Do not lead with a single capability: Atlas is not "an AI document reader", "an 
 
 ## Visual language
 
-Premium, calm, precise and credible. This is acquisition infrastructure, not a consumer AI app. Avoid heavy gradients, glow, neon effects, decorative motion and oversized cards. Use hairlines, flat surfaces and a single accent.
+Modern, elegant and credible: acquisition infrastructure, not a consumer AI app. Motion and graphics are welcome when they explain the product (the live preview, the acquisition loop, the evidence flow, workspace visuals). Keep effects soft: subtle ambient light, restrained gradients on one accent word, hairlines, no neon.
 
 ## Terminology
 
