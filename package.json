@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit",
-    "build:share": "vite build --config vite.share.config.mts"
+    "build:share": "vite build --config vite.share.config.mts",
+    "build:site": "npm run build:share && node scripts/encrypt-share.mjs share-dist/share/index.html site-dist"
   },
   "dependencies": {
     "@blocknote/core": "^0.55.0",

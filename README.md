@@ -28,6 +28,10 @@ The app includes its own password gate (`src/proxy.ts`, `src/app/access/route.ts
 
 To change the password, update `SITE_PASSWORD` and redeploy; existing access cookies stop working. Every response carries `X-Robots-Tag: noindex`. When `SITE_PASSWORD` is not set (local development), the site is open.
 
+## Static hosting with an encrypted password page (GitHub Pages)
+
+`npm run build:site` (with `SITE_PASSWORD` set) builds the single-file demo and encrypts it with AES-256-GCM (key derived from the password with PBKDF2-SHA256, 600,000 iterations) into `site-dist/`. The published page contains only ciphertext and a password form; the browser decrypts it after the right password and remembers the key on that device for 30 days. Publish `site-dist/` to any static host, for example a `gh-pages` branch with GitHub Pages enabled. To change the password, rebuild with a new `SITE_PASSWORD` and republish.
+
 ## What's in it
 
 | Area | What the reviewer can do |
